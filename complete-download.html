@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download Drama - Oppadrakor</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .progress-bar {
+      height: 6px;
+      background-color: #3b82f6;
+      width: 0%;
+      transition: width 1s linear;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+
+  <div class="max-w-2xl w-full mx-auto p-4 space-y-6">
+
+    <!-- Iklan Dummy Atas -->
+    <div class="bg-yellow-200 p-4 text-center rounded-lg shadow">
+      Iklan Dummy Atas
+    </div>
+
+    <!-- Konten Utama -->
+    <div id="content" class="bg-white p-6 rounded-lg shadow text-center">
+      <h1 id="judul" class="text-2xl font-bold mb-4">Loading...</h1>
+
+      <div id="loading" class="flex flex-col items-center space-y-2">
+        <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <p class="text-gray-600">Mengambil data...</p>
+      </div>
+     
+
+      <div id="buttons" class="space-y-6 hidden">
+        <div id="info" class="text-center text-sm text-gray-700 mb-4">
+          Silakan selesaikan misi klik tombol iklan terlebih dahulu untuk membuka tombol download.
+        </div> 
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <button id="iklan-btn-1" class="w-full bg-blue-500 text-white py-2 rounded-lg" disabled>Selesaikan Misi 1</button>
+            <div class="progress-container bg-gray-300 rounded-lg overflow-hidden">
+              <div id="progress-1" class="progress-bar"></div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <button id="iklan-btn-2" class="w-full bg-gray-400 text-white py-2 rounded-lg" disabled>Selesaikan Misi 2</button>
+            <div class="progress-container bg-gray-300 rounded-lg overflow-hidden">
+              <div id="progress-2" class="progress-bar"></div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <button id="iklan-btn-3" class="w-full bg-gray-400 text-white py-2 rounded-lg" disabled>Selesaikan Misi 3</button>
+            <div class="progress-container bg-gray-300 rounded-lg overflow-hidden">
+              <div id="progress-3" class="progress-bar"></div>
+            </div>
+          </div>
+          <button id="download-btn" class="w-full bg-gray-400 text-white py-3 rounded-lg font-bold text-lg" disabled>Selesaikan Misi Terlebih Dahulu!</button>
+        </div>
+      </div>
+
+      <div id="error" class="text-red-600 hidden">Drama tidak ditemukan.</div>
+    </div>
+
+    <!-- Iklan Dummy Bawah -->
+    <div class="bg-yellow-200 p-4 text-center rounded-lg shadow">
+      Iklan Dummy Bawah
+    </div>
+
+  </div>
+
+  <script>
+    const sheetDramaURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEcME2Vlq8bv3iQiy_VAvFWuI_Lic_rp4pnT46r4yNv7Q8VCYtjE0Y5PiTsp__9ze6_kpkbJNNHXWg/pub?output=csv';
+    const sheetIklanURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSvARu6vFEtwPlYrZK1doUZY0zO1cH72T_Yzi9SG3Atle1XHRZL2IssqDZR7GE1PNzEIa05XvYzfbSo/pub?output=csv';
+    
+    function getSlugFromUrl() {
+      const parts = window.location.pathname.split('/');
+      return parts[2] || '';
+    }
+    
+    async function fetchCSV(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      return Papa.parse(text, { header: true }).data;
+    }
+    
+    async function loadDownloadPage() {
+      try {
+        const [dramaData, iklanData] = await Promise.all([
+          fetchCSV(sheetDramaURL),
+          fetchCSV(sheetIklanURL)
+        ]);
+    
+        const slug = getSlugFromUrl();
+        const drama = dramaData.find(row => row['Slug']?.trim() === slug);
+    
+        const judulEl = document.getElementById('judul');
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const buttonsEl = document.getElementById('buttons');
+    
+        if (!drama) {
+          loadingEl.classList.add('hidden');
+          errorEl.classList.remove('hidden');
+          judulEl.innerText = "Drama tidak ditemukan.";
+          return;
+        }
+    
+        document.title = `Download ${slug.replace(/-/g, ' ').toUpperCase()} - Oppadrakor`;
+        judulEl.innerText = `Download ${slug.replace(/-/g, ' ').toUpperCase()}`;
+        loadingEl.classList.add('hidden');
+        buttonsEl.classList.remove('hidden');
+    
+        const iklanLinks = iklanData.map(row => row['link_aksi']).filter(link => link && link.trim() !== '');
+        const randomIklan = getRandomItems(iklanLinks, 3);
+    
+        setupButton('iklan-btn-1', 'progress-1', randomIklan[0], 'iklan-btn-2');
+        setupButton('iklan-btn-2', 'progress-2', randomIklan[1], 'iklan-btn-3');
+        setupButton('iklan-btn-3', 'progress-3', randomIklan[2], 'download-btn', true);
+    
+        // === Smart Fallback Handling ===
+        document.getElementById('download-btn').onclick = () => {
+          const linkDownload = drama['Link_Download']?.trim();
+    
+          if (linkDownload) {
+            window.open(linkDownload, '_blank');
+          } else {
+            alert('Link download belum tersedia. Silakan coba lagi nanti.');
+          }
+        };
+    
+        document.getElementById('iklan-btn-1').disabled = false;
+    
+      } catch (error) {
+        console.error("Gagal memuat data:", error);
+        document.getElementById('judul').innerText = "Terjadi kesalahan.";
+      }
+    }
+    
+    function setupButton(buttonId, progressId, url, nextButtonId, isLast = false) {
+      const button = document.getElementById(buttonId);
+      const progressBar = document.getElementById(progressId);
+      const nextButton = document.getElementById(nextButtonId);
+      const infoText = document.getElementById('info'); // Ambil element info
+    
+      button.onclick = () => {
+        window.open(url, '_blank');
+        button.disabled = true;
+        button.classList.remove('bg-blue-500');
+        button.classList.add('bg-gray-400', 'cursor-not-allowed');
+    
+        let seconds = 10;
+        progressBar.style.width = '0%';
+        let currentPercent = 0;
+    
+        const interval = setInterval(() => {
+          seconds--;
+          currentPercent += 10;
+          progressBar.style.width = `${currentPercent}%`;
+    
+          if (seconds <= 0) {
+            clearInterval(interval);
+    
+            nextButton.disabled = false;
+            nextButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            nextButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+    
+            if (isLast) {
+              nextButton.innerText = "Link Download Tersedia!";
+              infoText.innerText = "Misi selesai! Silakan klik tombol download untuk mendapatkan file.";
+    
+              // Tampilkan popup
+              setTimeout(() => {
+                showPopup("Misi Selesai!", "Tombol download sekarang aktif. Silakan klik untuk mulai mengunduh.");
+              }, 500); // sedikit delay biar smooth
+            }
+          }
+        }, 1000);
+      };
+    }
+    
+    function showPopup(title, message) {
+      const popup = document.createElement('div');
+      popup.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50';
+      popup.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-sm text-center shadow-lg">
+          <h2 class="text-xl font-bold mb-2">${title}</h2>
+          <p class="mb-4">${message}</p>
+          <button id="closePopup" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Oke</button>
+        </div>
+      `;
+      document.body.appendChild(popup);
+    
+      document.getElementById('closePopup').onclick = () => {
+        popup.remove();
+      };
+    }
+    
+    
+    function getRandomItems(arr, count) {
+      const shuffled = [...arr].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+    
+    loadDownloadPage();
+    lucide.createIcons();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+/drama/:slug/download    /download.html  200
+/drama/*   /drama.html   200
+/complete/:slug/download    /complete-download.html  200
+/complete/*   /complete-detail.html   200
+/jadwal   /jadwal.html   200
+/slug   /slug.html   200
+/complete   /complete.html   200

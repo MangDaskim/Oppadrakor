@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Slug Generator + History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-start pt-10 px-4">
+
+  <div class="bg-white shadow-lg rounded-xl p-6 w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-4 text-center">Slug Generator</h1>
+
+    <label class="block mb-2 font-medium">Judul Drama</label>
+    <input type="text" id="judul" placeholder="Contoh: My Lovely Liar"
+      class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+    <button onclick="generateSlug()"
+      class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">Buat Slug</button>
+
+    <div id="result" class="mt-6 text-center hidden">
+      <p class="text-gray-600 mb-2">Slug:</p>
+      <p id="slugOutput" class="font-mono text-lg bg-gray-100 p-2 rounded inline-block"></p>
+
+      <div class="flex justify-center gap-3 mt-4">
+        <button onclick="copySlug()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Copy</button>
+        <button onclick="resetForm()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white shadow mt-6 rounded-xl p-4 w-full max-w-md">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-semibold">Riwayat Slug</h2>
+      <button onclick="clearAllHistory()" class="text-red-500 text-sm hover:underline">Hapus Semua</button>
+    </div>
+    <ul id="slugHistory" class="space-y-2 text-sm"></ul>
+  </div>
+
+  <script>
+    function generateSlug() {
+      const judul = document.getElementById("judul").value.trim();
+      if (!judul) return;
+
+      const slug = judul
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+
+      document.getElementById("slugOutput").innerText = slug;
+      document.getElementById("result").classList.remove("hidden");
+
+      saveToHistory(judul, slug);
+    }
+
+    function copySlug() {
+      const slug = document.getElementById("slugOutput").innerText;
+      navigator.clipboard.writeText(slug).then(() => {
+        alert("Slug berhasil disalin!");
+      });
+    }
+
+    function resetForm() {
+      document.getElementById("judul").value = '';
+      document.getElementById("result").classList.add("hidden");
+      document.getElementById("slugOutput").innerText = '';
+    }
+
+    function saveToHistory(judul, slug) {
+      const history = JSON.parse(localStorage.getItem('slugHistory') || '[]');
+      history.unshift({ judul, slug });
+      localStorage.setItem('slugHistory', JSON.stringify(history.slice(0, 10)));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const container = document.getElementById("slugHistory");
+      const history = JSON.parse(localStorage.getItem('slugHistory') || '[]');
+      container.innerHTML = '';
+      history.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div class="flex items-center justify-between bg-gray-100 p-2 rounded">
+            <div>
+              <strong>${item.judul}</strong><br/>
+              <span class="font-mono">${item.slug}</span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="copyToClipboard('${item.slug}')" class="text-blue-600 hover:underline text-sm">Copy</button>
+              <button onclick="deleteHistory(${index})" class="text-red-500 hover:underline text-sm">Hapus</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(li);
+      });
+    }
+
+    function deleteHistory(index) {
+      const history = JSON.parse(localStorage.getItem('slugHistory') || '[]');
+      history.splice(index, 1);
+      localStorage.setItem('slugHistory', JSON.stringify(history));
+      renderHistory();
+    }
+
+    function clearAllHistory() {
+      if (confirm("Yakin ingin menghapus semua riwayat slug?")) {
+        localStorage.removeItem('slugHistory');
+        renderHistory();
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Slug disalin!");
+      });
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>

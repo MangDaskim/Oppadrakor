@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oppadrakor - Drama Korea Ongoing</title>
+
+  <!-- Meta Tag Open Graph (OG) untuk Facebook -->
+  <meta property="og:title" content="Oppadrakor - Streaming Dan Download Drama Korea ❤️" />
+  <meta property="og:description" content="Temukan drama-drama terbaik di Oppadrakor. Pilih drama favoritmu dan nikmati!" />
+  <meta property="og:image" content="https://oppadrakor.netlify.app/img/banner_oppadrakor.png" />  <!-- Ganti dengan gambar yang sesuai -->
+  <meta property="og:url" content="https://oppadrakor.netlify.app" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="id_ID" />
+
+  <!-- Meta Tag Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Oppadrakor - Streaming Dan Download Drama Korea ❤️" />
+  <meta name="twitter:description" content="Temukan drama-drama terbaik di Oppadrakor. Pilih drama favoritmu dan nikmati!" />
+  <meta name="twitter:image" content="https://oppadrakor.netlify.app/img/banner_oppadrakor.png" /> <!-- Ganti dengan gambar yang sesuai -->
+  <meta name="twitter:url" content="https://oppadrakor.netlify.app" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "9cc8206d-0b52-4d81-bd28-814c8dc38401",
+        safari_web_id: "web.onesignal.auto.5093406a-927f-4c57-a877-608b6718a7cc",
+        notifyButton: {
+          enable: true,
+          position: 'bottom-right', // pilihan: bottom-right, bottom-left
+          theme: 'inverse', // atau 'inverse'
+          size: 'medium', // small, medium, large
+          offset: {
+            bottom: '80px', // naik agar tidak tertabrak nav bawah kamu
+            right: '20px' // atau left jika bottom-left
+          }
+        }
+      });
+    });
+  </script>  
+</head>
+
+<body class="bg-gray-100 font-sans pb-20">
+
+
+<!-- Header -->
+<header class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white z-50 shadow">
+  <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Oppadrakor</h1>
+    <div class="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full shadow-lg">
+      <!-- WhatsApp Icon from Icons8 -->
+      <a href="https://whatsapp.com/channel/0029VbADpfZJkK753CfIVg1t" target="_blank">
+        <img src="https://img.icons8.com/ios-filled/24/25D366/whatsapp--v1.png" alt="WhatsApp" class="w-5 h-5" />
+      </a>
+  
+      <!-- Telegram Icon from Icons8 -->
+      <a href="https://t.me/Oppadrakor_id" target="_blank">
+        <img src="https://img.icons8.com/ios-filled/24/0088cc/telegram-app.png" alt="Telegram" class="w-5 h-5" />
+      </a>
+  
+      <!-- Text -->
+      <span class="text-sm font-medium text-gray-700">Join With Us</span>
+    </div>
+  </div>  
+
+
+<div class="bg-blue-800 text-white py-2 px-4 flex items-center gap-2 overflow-hidden">
+  <!-- Ikon Megaphone -->
+  <i data-lucide="megaphone" class="w-5 h-5 shrink-0"></i>
+
+  <!-- Teks Berjalan -->
+  <marquee behavior="scroll" direction="left" scrollamount="5" class="text-sm" id="marquee-text">
+    Memuat info terbaru...
+  </marquee>
+</div>
+</header>
+
+<!-- Spacer karena header fixed -->
+<div class="pt-[116px]"></div>
+
+<!-- Donasi Saweria (Random dari Sheet) -->
+<div id="donasi-box" class="bg-white shadow-md py-3 px-4 text-center text-black mb-4 mx-4 rounded-xl hidden">
+  <p id="donasi-teks" class="font-medium mb-2"></p>
+  <a href="https://saweria.co/oppadrakor" target="_blank" class="inline-flex items-center bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-full transition">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 1.343 3 3s-1.343 3-3 3m0 0c-1.657 0-3-1.343-3-3s1.343-3 3-3m0 0V5m0 11v3" />
+    </svg>
+    Donasi Sekarang!
+  </a>
+</div>
+
+
+  <main class="pt-5 container mx-auto px-4 py-8">
+    <!-- Iklan Atas -->
+    <div class="bg-yellow-300 text-center p-4 mb-6 rounded shadow">Iklan Banner Dummy (Atas)</div>
+
+    <!-- Popup Loading Spinner -->
+<div id="loading-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999] hidden transition-opacity duration-300">
+  <div class="w-20 h-20 border-4 border-t-blue-500 border-b-pink-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
+</div>
+    <div id="drama-list" class="space-y-6"></div>
+
+    <!-- Iklan Tengah -->
+    <div id="middle-ad" class="bg-blue-300 text-center p-4 mb-6 rounded shadow">Iklan Tengah Dummy</div>
+  </main>
+
+  <div id="notif-tooltip"
+     class="fixed bottom-20 right-4 bg-blue-600 text-white text-sm px-4 py-2 rounded shadow-lg max-w-sm w-fit mx-4 z-50">
+  <div class="flex items-start justify-between gap-2">
+    <span class="leading-snug">Aktifkan notifikasi untuk update drama terbaru kami!</span>
+    <button id="close-tooltip" class="text-white hover:text-gray-300 font-bold ml-2 mr-8">✕</button>
+  </div>
+</div>
+  
+<!-- Floating Bottom Menu -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
+  <a href="/" id="menu-home" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="tv" class="w-6 h-6 mb-1"></i>
+    <span>Ongoing</span>
+  </a>
+  <a href="/complete" id="menu-complete" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="check-circle" class="w-6 h-6 mb-1"></i>
+    <span>Complete</span>
+  </a>
+  <a href="/jadwal" id="menu-jadwal" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
+    <span>Jadwal</span>
+  </a>
+</nav>
+
+
+<style>
+  /* Tombol aktif dengan background mendem tapi tidak terlalu penuh */
+  .active-link {
+    background-color: #e0f2fe; /* Warna biru muda */
+    border-radius: 10px;
+    padding: 10px 15px; /* Memberi ruang di sekitarnya */
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1); /* Efek mendem lebih halus */
+    transform: scale(0.98); /* Tampilan seperti ditekan */
+    transition: all 0.3s ease;
+  }
+
+  /* Efek hover untuk semua menu */
+  .menu-link:hover {
+    color: #1e40af; /* Warna biru saat hover */
+  }
+</style>
+
+
+
+<style>
+  /* Glow Effect yang lebih soft */
+  .glow-effect {
+    position: relative;
+    color: #1e40af; /* Warna biru halus */
+    animation: glow-animation 1s ease-out infinite alternate;
+  }
+
+  @keyframes glow-animation {
+    0% {
+      text-shadow: 0 0 3px rgba(30, 64, 175, 0.5), 0 0 5px rgba(30, 64, 175, 0.4), 0 0 8px rgba(30, 64, 175, 0.3);
+    }
+    100% {
+      text-shadow: 0 0 6px rgba(30, 64, 175, 0.7), 0 0 10px rgba(30, 64, 175, 0.6), 0 0 15px rgba(30, 64, 175, 0.5);
+    }
+  }
+
+  /* Untuk responsif hover */
+  .menu-link:hover {
+    color: #1e40af;
+  }
+</style>
+
+<script>
+  // Fungsi aktifkan menu sesuai URL
+  document.addEventListener("DOMContentLoaded", function () {
+    const path = window.location.pathname;
+    const menus = {
+      "/": "menu-home",
+      "/complete": "menu-complete",
+      "/jadwal": "menu-jadwal"
+    };
+
+    const activeMenu = menus[path];
+    if (activeMenu) {
+      const activeLink = document.getElementById(activeMenu);
+      activeLink.classList.add("active-link"); // Tambahkan kelas untuk tombol aktif
+    }
+  });
+</script>
+
+<script>
+  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?output=csv';
+
+  async function loadDonasiText() {
+    try {
+      const res = await fetch(sheetUrl);
+      const csv = await res.text();
+      const rows = csv.trim().split('\n'); // Split per baris
+
+      // Pilih salah satu baris secara acak
+      if (rows.length > 0) {
+        const randomRow = rows[Math.floor(Math.random() * rows.length)];
+        document.getElementById('donasi-teks').textContent = randomRow;
+        document.getElementById('donasi-box').classList.remove('hidden');
+      }
+    } catch (err) {
+      console.error('Gagal memuat teks donasi:', err);
+    }
+  }
+
+  loadDonasiText();
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const tooltip = document.getElementById("notif-tooltip");
+    const closeBtn = document.getElementById("close-tooltip");
+
+    const lastClosed = localStorage.getItem("notifTooltipClosedAt");
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    if (!lastClosed || now - parseInt(lastClosed) > oneDay) {
+      tooltip.style.display = "flex"; // Tampilkan tooltip jika belum pernah tutup atau sudah lebih dari 1 hari
+    } else {
+      tooltip.style.display = "none";
+    }
+
+    closeBtn.addEventListener("click", () => {
+      tooltip.style.display = "none";
+      localStorage.setItem("notifTooltipClosedAt", Date.now().toString());
+    });
+  });
+</script>
+
+
+
+   <!-- Histats.com  START  (aync)-->
+   <script type="text/javascript">var _Hasync= _Hasync|| [];
+    _Hasync.push(['Histats.start', '1,4947528,4,0,0,0,00010000']);
+    _Hasync.push(['Histats.fasi', '1']);
+    _Hasync.push(['Histats.track_hits', '']);
+    (function() {
+    var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+    hs.src = ('//s10.histats.com/js15_as.js');
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+    })();</script>
+    <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?4947528&101" alt="" border="0"></a></noscript>
+    <!-- Histats.com  END  -->
+
+<script src="/index.js"></script>
+</body>
+</html>

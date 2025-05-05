@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drakor Complete</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+
+<body class="bg-gray-100 font-sans pb-20">
+  <!-- Header -->
+  <header class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white z-50 shadow">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-xl font-bold">Oppadrakor</h1>
+      <div class="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full shadow-lg">
+        <!-- WhatsApp Icon from Icons8 -->
+        <a href="https://whatsapp.com/channel/0029VbADpfZJkK753CfIVg1t" target="_blank">
+          <img src="https://img.icons8.com/ios-filled/24/25D366/whatsapp--v1.png" alt="WhatsApp" class="w-5 h-5" />
+        </a>
+    
+        <!-- Telegram Icon from Icons8 -->
+        <a href="https://t.me/Oppadrakor_id" target="_blank">
+          <img src="https://img.icons8.com/ios-filled/24/0088cc/telegram-app.png" alt="Telegram" class="w-5 h-5" />
+        </a>
+    
+        <!-- Text -->
+        <span class="text-sm font-medium text-gray-700">Join With Us</span>
+      </div>
+    </div>  
+
+    
+    <div class="bg-blue-800 text-white py-2 px-4 flex items-center gap-2 overflow-hidden">
+      <i data-lucide="megaphone" class="w-5 h-5 shrink-0"></i>
+      <marquee behavior="scroll" direction="left" scrollamount="5" class="text-sm" id="marquee-text">
+        Memuat info terbaru...
+      </marquee>
+    </div>
+  </header>
+
+  <div class="pt-[88px]"></div>
+
+  <main class="container mx-auto px-4 py-6">
+    <!-- Iklan Atas -->
+    <div class="bg-yellow-300 text-center p-4 mb-6 rounded shadow">Iklan Banner Dummy (Atas)</div>
+
+    <!-- Search & Filter -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+      <input type="text" id="searchInput" placeholder="Cari drama..." class="w-full sm:w-1/2 px-4 py-2 border rounded shadow text-sm">
+      <div id="filter-container" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- Popup Loading Spinner -->
+<div id="loading-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999] hidden transition-opacity duration-300">
+  <div class="w-20 h-20 border-4 border-t-blue-500 border-b-pink-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
+</div>
+    <div id="drama-list" class="space-y-6"></div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center items-center mt-6 space-x-2" id="pagination"></div>
+  </main>
+
+  <!-- Bottom Menu -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
+    <a href="/" id="menu-home" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+      <i data-lucide="tv" class="w-6 h-6 mb-1"></i>
+      <span>Ongoing</span>
+    </a>
+    <a href="/complete" id="menu-complete" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+      <i data-lucide="check-circle" class="w-6 h-6 mb-1"></i>
+      <span>Complete</span>
+    </a>
+    <a href="/jadwal" id="menu-jadwal" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+      <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
+      <span>Jadwal</span>
+    </a>
+  </nav>
+  
+  <script>
+    // Fungsi aktifkan menu sesuai URL
+    document.addEventListener("DOMContentLoaded", function () {
+      const path = window.location.pathname;
+      const menus = {
+        "/": "menu-home",
+        "/complete": "menu-complete",
+        "/jadwal": "menu-jadwal"
+      };
+  
+      const activeMenu = menus[path];
+      if (activeMenu) {
+        const activeLink = document.getElementById(activeMenu);
+        activeLink.classList.add("active-link"); // Tambahkan kelas untuk tombol aktif
+      }
+    });
+  </script>
+  
+  <style>
+    /* Tombol aktif dengan background mendem tapi tidak terlalu penuh */
+    .active-link {
+      background-color: #e0f2fe; /* Warna biru muda */
+      border-radius: 10px;
+      padding: 10px 15px; /* Memberi ruang di sekitarnya */
+      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1); /* Efek mendem lebih halus */
+      transform: scale(0.98); /* Tampilan seperti ditekan */
+      transition: all 0.3s ease;
+    }
+  
+    /* Efek hover untuk semua menu */
+    .menu-link:hover {
+      color: #1e40af; /* Warna biru saat hover */
+    }
+  </style>
+
+     <!-- Histats.com  START  (aync)-->
+     <script type="text/javascript">var _Hasync= _Hasync|| [];
+      _Hasync.push(['Histats.start', '1,4947528,4,0,0,0,00010000']);
+      _Hasync.push(['Histats.fasi', '1']);
+      _Hasync.push(['Histats.track_hits', '']);
+      (function() {
+      var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+      hs.src = ('//s10.histats.com/js15_as.js');
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+      })();</script>
+      <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?4947528&101" alt="" border="0"></a></noscript>
+      <!-- Histats.com  END  -->
+
+<script src="/complete.js"></script>
+</body>
+</html>
