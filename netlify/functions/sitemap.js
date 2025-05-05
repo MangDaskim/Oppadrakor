@@ -28,10 +28,15 @@ exports.handler = async () => {
 
     const urls = rows
       .map(row => {
+        // Cek dan ambil value dari kolom pertama
         const slug = row?.c?.[0]?.v;
         return slug ? slug.toString().trim() : null;
       })
-      .filter(Boolean);
+      .filter(Boolean); // Buang nilai null dan kosong
+
+    if (urls.length === 0) {
+      throw new Error("Tidak ada slug yang valid di Sheet");
+    }
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
       `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
