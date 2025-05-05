@@ -8,11 +8,8 @@ exports.handler = async () => {
     const response = await fetch(url);
     const rawText = await response.text();
 
-    // Log response untuk debugging
-    console.log("Raw Google Sheets response:", rawText);
-
-    // Ambil JSON dari response
-    const match = rawText.match(/google\.visualization\.Query\.setResponse(.*);/s);
+    // Ambil JSON murni dari response Google Sheets
+    const match = rawText.match(/google.visualization.Query.setResponse([\s\S]*?);/);
     if (!match || !match[1]) {
       throw new Error("Gagal parse JSON dari Google Sheets");
     }
@@ -21,21 +18,20 @@ exports.handler = async () => {
     const rows = json.table.rows;
 
     if (!rows || rows.length === 0) {
-      throw new Error("Data kosong atau tidak ditemukan di Sheet");
+      throw new Error("Tidak ada data pada Google Sheet");
     }
 
     const baseUrl = "https://oppadrakor.netlify.app";
 
     const urls = rows
       .map(row => {
-        // Cek dan ambil value dari kolom pertama
         const slug = row?.c?.[0]?.v;
-        return slug ? slug.toString().trim() : null;
+        return slug && slug.startsWith("/") ? slug.trim() : null;
       })
-      .filter(Boolean); // Buang nilai null dan kosong
+      .filter(Boolean);
 
     if (urls.length === 0) {
-      throw new Error("Tidak ada slug yang valid di Sheet");
+      throw new Error("Tidak ada slug valid ditemukan");
     }
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
