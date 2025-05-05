@@ -8,12 +8,13 @@ exports.handler = async () => {
     const res = await fetch(url);
     const text = await res.text();
 
-    // Ekstrak JSON valid dari JSONP
     const json = JSON.parse(text.match(/(?<=setResponse).*(?=;)/s)[0]);
     const rows = json.table.rows;
 
     const baseUrl = 'https://your-site-name.netlify.app';
-    const urls = rows.map(row => row.c[0]?.v).filter(Boolean); // amankan jika null
+    const urls = rows
+      .map(row => row.c && row.c[0] && row.c[0].v)
+      .filter(slug => typeof slug === 'string' && slug.trim() !== '');
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
       urls.map(slug => `  <url><loc>${baseUrl}${slug}</loc></url>`).join('\n') +
