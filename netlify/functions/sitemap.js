@@ -8,15 +8,11 @@ exports.handler = async () => {
     const response = await fetch(url);
     const rawText = await response.text();
 
-    // Ambil JSON dari respon Google
-    const match = rawText.match(/google.visualization.Query.setResponse([\s\S]*?);/);
-    if (!match || !match[1]) {
-      throw new Error("Gagal parse JSON dari Google Sheets");
-    }
-
-    // Bersihkan karakter aneh
-    const cleanJson = match[1].replace(/[\u2028\u2029]/g, '');
-    const json = JSON.parse(cleanJson);
+    // Ambil string JSON dari respons Google Sheets tanpa regex
+    const jsonStart = rawText.indexOf('setResponse(') + 'setResponse('.length;
+    const jsonEnd = rawText.lastIndexOf(');');
+    const jsonString = rawText.substring(jsonStart, jsonEnd);
+    const json = JSON.parse(jsonString);
 
     const rows = json.table.rows;
     if (!rows || rows.length === 0) {
