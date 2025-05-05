@@ -8,15 +8,17 @@ exports.handler = async () => {
     const response = await fetch(url);
     const rawText = await response.text();
 
-    // Ambil JSON murni dari response Google Sheets
+    // Ambil JSON dari respon Google
     const match = rawText.match(/google.visualization.Query.setResponse([\s\S]*?);/);
     if (!match || !match[1]) {
       throw new Error("Gagal parse JSON dari Google Sheets");
     }
 
-    const json = JSON.parse(match[1]);
-    const rows = json.table.rows;
+    // Bersihkan karakter aneh
+    const cleanJson = match[1].replace(/[\u2028\u2029]/g, '');
+    const json = JSON.parse(cleanJson);
 
+    const rows = json.table.rows;
     if (!rows || rows.length === 0) {
       throw new Error("Tidak ada data pada Google Sheet");
     }
