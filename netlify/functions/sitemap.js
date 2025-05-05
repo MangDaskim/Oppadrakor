@@ -8,6 +8,9 @@ exports.handler = async () => {
     const response = await fetch(url);
     const rawText = await response.text();
 
+    // Log response untuk debugging
+    console.log("Raw Google Sheets response:", rawText);
+
     // Ambil JSON dari response
     const match = rawText.match(/google\.visualization\.Query\.setResponse(.*);/s);
     if (!match || !match[1]) {
@@ -41,6 +44,7 @@ exports.handler = async () => {
       body: xml
     };
   } catch (error) {
+    console.error("Error:", error.message);
     return {
       statusCode: 500,
       body: `Error: ${error.message}`
