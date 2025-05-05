@@ -8,14 +8,18 @@ exports.handler = async () => {
     const res = await fetch(url);
     const text = await res.text();
 
-    // Parse JSON dari response Google
+    // Ambil bagian JSON dari response Google
     const json = JSON.parse(text.match(/(?<=setResponse).*(?=;)/s)[0]);
     const rows = json.table.rows;
 
-    const baseUrl = 'https://oppadrakor.netlify.app'; // Ganti ini
+    const baseUrl = 'https://oppadrakor.netlify.app'; // Ganti ke domainmu jika custom
+
     const urls = rows
-      .map(row => row.c && row.c[0] && row.c[0].v)
-      .filter(slug => typeof slug === 'string' && slug.trim() !== '');
+      .map(row => {
+        if (!row || !row.c || !row.c[0] || !row.c[0].v) return null;
+        return row.c[0].v.toString().trim();
+      })
+      .filter(slug => slug);
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
       urls.map(slug => `  <url><loc>${baseUrl}${slug}</loc></url>`).join('\n') +
@@ -26,6 +30,7 @@ exports.handler = async () => {
       headers: { "Content-Type": "application/xml" },
       body: xml
     };
+
   } catch (err) {
     return {
       statusCode: 500,
