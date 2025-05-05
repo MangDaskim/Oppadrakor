@@ -1,6 +1,10 @@
 const fetch = require("node-fetch");
 
-exports.handler = async () => {
+exports.handler = async (event) => {
+  const host = event.headers.host;
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const baseUrl = `${protocol}://${host}`;
+
   const SHEET_ID = "1fADyls5HtqKn0nP7h1xkGjYuOy-vFAHlZz4WyWJaVVc";
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
@@ -8,7 +12,7 @@ exports.handler = async () => {
     const response = await fetch(url);
     const rawText = await response.text();
 
-    // Ambil string JSON dari respons Google Sheets tanpa regex
+    // Ambil JSON dari respons Google Sheets
     const jsonStart = rawText.indexOf('setResponse(') + 'setResponse('.length;
     const jsonEnd = rawText.lastIndexOf(');');
     const jsonString = rawText.substring(jsonStart, jsonEnd);
@@ -18,8 +22,6 @@ exports.handler = async () => {
     if (!rows || rows.length === 0) {
       throw new Error("Tidak ada data pada Google Sheet");
     }
-
-    const baseUrl = "https://oppadrakor.netlify.app";
 
     const urls = rows
       .map(row => {
