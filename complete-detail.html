@@ -117,9 +117,13 @@
   <p class="text-sm text-gray-700 px-4">
     Jika kamu menemukan link yang <span class="font-medium text-red-600">error</span> atau
     <span class="font-medium text-red-600">tidak bisa diputar</span>,
-    silakan <button onclick="document.getElementById('report-modal').classList.remove('hidden')" class="text-blue-600 underline hover:text-blue-800 font-semibold">
-    laporkan kepada kami</button>, agar kami bisa segera memperbaikinya untuk kenyamanan kamu.
+    silakan laporkan kepada kami melalui tombol di bawah ini.
   </p>
+  <div class="mt-4">
+    <button onclick="openReportModal()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-200">
+      Laporkan Sekarang
+    </button>
+  </div>
 </div>
 
 <!-- Modal Form -->
@@ -189,6 +193,29 @@
 
 <!-- Script -->
 <script>
+  // Fungsi buka popup form
+  function openReportModal() {
+    const modal = document.getElementById('report-modal');
+    modal.classList.remove('hidden');
+
+    // Auto-isi judul drama jika ada elemen dengan id "drama-title"
+    const titleEl = document.getElementById('drama-title');
+    if (titleEl) {
+      document.getElementById('drama').value = titleEl.textContent.trim();
+    }
+
+    // Atau isi dari URL jika elemen tidak tersedia
+    if (!titleEl) {
+      const pathParts = window.location.pathname.split('/');
+      const slug = pathParts.includes('drama') ? pathParts[pathParts.indexOf('drama') + 1] : null;
+      if (slug) {
+        const formatted = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        document.getElementById('drama').value = formatted;
+      }
+    }
+  }
+
+  // Fungsi tutup popup dan reset form
   function closeReportModal() {
     document.getElementById('report-modal').classList.add('hidden');
     document.getElementById('report-form').reset();
@@ -196,15 +223,7 @@
     document.getElementById('thank-you-message').classList.add('hidden');
   }
 
-  // Autofill Judul Drama saat modal dibuka
-  document.querySelector('[onclick*="report-modal"]').addEventListener('click', function () {
-    const title = document.getElementById('judul');
-    if (title) {
-      document.getElementById('drama').value = title.textContent.trim();
-    }
-  });
-
-  // AJAX kirim form
+  // Kirim form via AJAX tanpa reload
   document.getElementById("report-form").addEventListener("submit", function(e) {
     e.preventDefault();
     const form = e.target;
