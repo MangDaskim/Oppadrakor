@@ -95,39 +95,6 @@
     <iframe id="player" src="" class="absolute top-0 left-0 w-full h-full" frameborder="0" allowfullscreen></iframe>
     <img id="player-fallback" class="w-full aspect-video rounded-xl hidden object-cover" alt="Gambar Drama">
     </div>
-
-<script>
-  let lastBlur = 0;
-
-  // Saat user klik di mana pun (biasanya iframe)
-  document.addEventListener('click', () => {
-    lastBlur = Date.now();
-  });
-
-  // Deteksi saat halaman kehilangan fokus
-  window.addEventListener('blur', () => {
-    const now = Date.now();
-    // Kalau blur terjadi dalam 2 detik setelah klik, kemungkinan popunder
-    if (now - lastBlur < 2000) {
-      console.warn('Popunder terdeteksi!');
-
-      // Aksi balasan (opsional):
-      // 1. Tampilkan overlay
-      // 2. Reset iframe src
-      // 3. Redirect ulang halaman
-      // 4. Log/report
-
-      // Contoh: reload iframe
-      const iframe = document.getElementById('player');
-      if (iframe) {
-        const src = iframe.src;
-        iframe.src = '';
-        setTimeout(() => { iframe.src = src; }, 100);
-      }
-    }
-  });
-</script>
-      
     </div>
     <div class="px-4">
       <div id="server-buttons" class="flex gap-2 mt-4 hidden"></div>
