@@ -196,7 +196,15 @@
     document.getElementById('thank-you-message').classList.add('hidden');
   }
 
-  // AJAX kirim tanpa reload
+  // Autofill Judul Drama saat modal dibuka
+  document.querySelector('[onclick*="report-modal"]').addEventListener('click', function () {
+    const title = document.getElementById('drama-title');
+    if (title) {
+      document.getElementById('drama').value = title.textContent.trim();
+    }
+  });
+
+  // AJAX kirim form
   document.getElementById("report-form").addEventListener("submit", function(e) {
     e.preventDefault();
     const form = e.target;
