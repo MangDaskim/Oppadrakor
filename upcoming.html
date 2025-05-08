@@ -143,6 +143,20 @@
   const today = new Date();
   const bulanText = `- ${bulanID[today.getMonth()]} ${today.getFullYear()} -`;
   document.getElementById('bulanSekarang').textContent = bulanText;
+
+    function openModal(drama) {
+  document.getElementById('modal-image').src = drama.gambar;
+  document.getElementById('modal-title').textContent = drama.judul;
+  document.getElementById('modal-date').innerHTML = `<span class="text-gray-500">Tanggal Tayang:</span> <strong>${formatTanggalIndonesia(drama.tanggal)}</strong>`;
+  document.getElementById('modal-genres').innerHTML = createGenreTags(drama.genre);
+  document.getElementById('modal-sinopsis').textContent = drama.sinopsis;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+  
   lucide.createIcons();
 </script>
 
