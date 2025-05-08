@@ -61,21 +61,25 @@
     <div class="flex justify-center items-center mt-6 space-x-2" id="pagination"></div>
   </main>
 
-  <!-- Bottom Menu -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
-    <a href="/" id="menu-home" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-      <i data-lucide="tv" class="w-6 h-6 mb-1"></i>
-      <span>Ongoing</span>
-    </a>
-    <a href="/complete" id="menu-complete" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-      <i data-lucide="check-circle" class="w-6 h-6 mb-1"></i>
-      <span>Complete</span>
-    </a>
-    <a href="/jadwal" id="menu-jadwal" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-      <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
-      <span>Jadwal</span>
-    </a>
-  </nav>
+<!-- Floating Bottom Menu -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
+  <a href="/" id="menu-home" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="tv" class="w-6 h-6 mb-1"></i>
+    <span>Ongoing</span>
+  </a>
+  <a href="/complete" id="menu-complete" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="check-circle" class="w-6 h-6 mb-1"></i>
+    <span>Complete</span>
+  </a>
+  <a href="/jadwal" id="menu-jadwal" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
+    <span>Jadwal</span>
+  </a>
+  <a href="/upcoming" id="menu-upcoming" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="clock" class="w-6 h-6 mb-1"></i>
+    <span>Upcoming</span>
+  </a>
+</nav>
   
   <script>
     // Fungsi aktifkan menu sesuai URL
@@ -84,7 +88,8 @@
       const menus = {
         "/": "menu-home",
         "/complete": "menu-complete",
-        "/jadwal": "menu-jadwal"
+        "/jadwal": "menu-jadwal",
+        "/upcoming": "menu-upcoming"
       };
   
       const activeMenu = menus[path];
