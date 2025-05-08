@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upcoming Drama Korea</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .modal-scroll {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans pb-20">
+
+<!-- Header -->
+<header class="fixed top-0 w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white z-50 shadow">
+  <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Oppadrakor</h1>
+    <div class="flex items-center gap-3 bg-gray-100 px-4 py-2 rounded-full shadow-lg">
+      <!-- WhatsApp Icon from Icons8 -->
+      <a href="https://whatsapp.com/channel/0029VbADpfZJkK753CfIVg1t" target="_blank">
+        <img src="https://img.icons8.com/ios-filled/24/25D366/whatsapp--v1.png" alt="WhatsApp" class="w-5 h-5" />
+      </a>
+  
+      <!-- Telegram Icon from Icons8 -->
+      <a href="https://t.me/Oppadrakor_id" target="_blank">
+        <img src="https://img.icons8.com/ios-filled/24/0088cc/telegram-app.png" alt="Telegram" class="w-5 h-5" />
+      </a>
+  
+      <!-- Text -->
+      <span class="text-sm font-medium text-gray-700">Join With Us</span>
+    </div>
+  </div>  
+
+<div class="bg-blue-800 text-white py-2 px-4 flex items-center gap-2 overflow-hidden">
+  <!-- Ikon Megaphone -->
+  <i data-lucide="megaphone" class="w-5 h-5 shrink-0"></i>
+
+  <!-- Teks Berjalan -->
+  <marquee behavior="scroll" direction="left" scrollamount="5" class="text-sm" id="marquee-text">
+    Memuat info terbaru...
+  </marquee>
+</div>
+</header>
+
+<!-- Spacer karena header fixed -->
+<div class="pt-[116px]"></div>
+
+  <!-- Iklan Banner Atas -->
+  <div class="container mx-auto px-4 pb-3">
+    <div class="bg-yellow-300 text-center p-4 mb-4 rounded shadow">Iklan Banner Dummy (Atas)</div>
+  </div>
+
+  <!-- Section Upcoming Drama -->
+  <div class="container mx-auto px-4 pb-6">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
+      Upcoming Drama Korea <br><span id="bulanSekarang" class="text-pink-600"></span>
+    </h1>
+    
+    <div id="dramaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+  </div>
+
+  <!-- Iklan Banner Bawah -->
+  <div class="container mx-auto px-4 pt-2">
+    <div class="bg-yellow-300 text-center p-4 mt-4 rounded shadow">Iklan Banner Dummy (Bawah)</div>
+  </div>
+
+  <!-- Modal -->
+<div id="modal" class="fixed inset-0 z-[9999] hidden bg-black bg-opacity-70 flex items-center justify-center">
+  <div class="bg-white mx-4 sm:mx-6 md:mx-10 rounded-xl overflow-hidden shadow-2xl relative max-h-[95vh] flex flex-col w-full max-w-xl">
+    <button onclick="closeModal()" class="absolute top-3 right-4 text-white text-3xl font-bold z-[9999] hover:scale-125 transition">&times;</button>
+    <img id="modal-image" src="" class="w-full h-72 object-cover" />
+    <div class="p-5 overflow-y-auto flex-1">
+      <h2 id="modal-title" class="text-2xl font-bold mb-2 text-gray-800"></h2>
+      <p id="modal-date" class="text-sm text-gray-500 mb-3"></p>
+      <div id="modal-genres" class="flex flex-wrap gap-2 mb-4"></div>
+      <div class="text-sm text-gray-700 whitespace-pre-line max-h-48 overflow-y-auto pr-2" id="modal-sinopsis"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Bottom Menu -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
+  <a href="/" id="menu-home" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="tv" class="w-6 h-6 mb-1"></i>
+    <span>Ongoing</span>
+  </a>
+  <a href="/complete" id="menu-complete" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="check-circle" class="w-6 h-6 mb-1"></i>
+    <span>Complete</span>
+  </a>
+  <a href="/jadwal" id="menu-jadwal" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
+    <span>Jadwal</span>
+  </a>
+  <a href="/upcoming" id="menu-upcoming" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="clock" class="w-6 h-6 mb-1"></i>
+    <span>Upcoming</span>
+  </a>
+</nav>
+
+<style>
+  /* Tombol aktif dengan background mendem tapi tidak terlalu penuh */
+  .active-link {
+    background-color: #e0f2fe; /* Warna biru muda */
+    border-radius: 10px;
+    padding: 10px 15px; /* Memberi ruang di sekitarnya */
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.1); /* Efek mendem lebih halus */
+    transform: scale(0.98); /* Tampilan seperti ditekan */
+    transition: all 0.3s ease;
+  }
+
+  /* Efek hover untuk semua menu */
+  .menu-link:hover {
+    color: #1e40af; /* Warna biru saat hover */
+  }
+</style>
+
+<script>
+  // Fungsi aktifkan menu sesuai URL
+  document.addEventListener("DOMContentLoaded", function () {
+    const path = window.location.pathname;
+    const menus = {
+      "/": "menu-home",
+      "/complete": "menu-complete",
+      "/jadwal": "menu-jadwal",
+      "/upcoming": "menu-upcoming"
+    };
+
+
+    const activeMenu = menus[path];
+    if (activeMenu) {
+      const activeLink = document.getElementById(activeMenu);
+      activeLink.classList.add("active-link"); // Tambahkan kelas untuk tombol aktif
+    }
+  });
+
+  const bulanID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const today = new Date();
+  const bulanText = `- ${bulanID[today.getMonth()]} ${today.getFullYear()} -`;
+  document.getElementById('bulanSekarang').textContent = bulanText;
+  lucide.createIcons();
+</script>
+
+<style>
+  /* Glow Effect yang lebih soft */
+  .glow-effect {
+    position: relative;
+    color: #1e40af; /* Warna biru halus */
+    animation: glow-animation 1s ease-out infinite alternate;
+  }
+
+  @keyframes glow-animation {
+    0% {
+      text-shadow: 0 0 3px rgba(30, 64, 175, 0.5), 0 0 5px rgba(30, 64, 175, 0.4), 0 0 8px rgba(30, 64, 175, 0.3);
+    }
+    100% {
+      text-shadow: 0 0 6px rgba(30, 64, 175, 0.7), 0 0 10px rgba(30, 64, 175, 0.6), 0 0 15px rgba(30, 64, 175, 0.5);
+    }
+  }
+
+  /* Untuk responsif hover */
+  .menu-link:hover {
+    color: #1e40af;
+  }
+</style>
+
+<script src="/upcoming.js"></script>
+</body>
+</html>
