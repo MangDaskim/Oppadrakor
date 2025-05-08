@@ -351,6 +351,10 @@
     <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
     <span>Jadwal</span>
   </a>
+  <a href="/upcoming" id="menu-upcoming" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+    <i data-lucide="clock" class="w-6 h-6 mb-1"></i>
+    <span>Upcoming</span>
+  </a>
 </nav>
 
 <script>
@@ -360,7 +364,8 @@
     const menus = {
       "/": "menu-home",
       "/complete": "menu-complete",
-      "/jadwal": "menu-jadwal"
+      "/jadwal": "menu-jadwal",
+      "/upcoming": "menu-upcoming"
     };
 
     const activeMenu = menus[path];
