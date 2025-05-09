@@ -138,8 +138,33 @@
     <div id="drama-list" class="space-y-6"></div>
 
     <!-- Iklan Bawah -->
-    <br>
-    <div id="middle-ad" class="bg-blue-300 text-center p-4 mb-6 rounded shadow">Iklan Bawah Dummy</div>
+    <!-- Iklan -->
+  <div id="affiliateAd"
+       class="w-full max-w-[728px] bg-white rounded-xl shadow-lg overflow-hidden flex flex-col sm:flex-row items-center sm:h-[90px] relative">
+
+    <!-- Background Blur di HP -->
+    <div id="blurBg" class="absolute inset-0 sm:hidden bg-blur z-0 transition-all duration-500"></div>
+
+    <!-- Gambar -->
+    <div class="relative w-full sm:w-[90px] h-[150px] sm:h-full flex-shrink-0 z-10 flex items-center justify-center">
+      <img id="adImage" src="" alt="Produk"
+           class="w-full h-full object-contain sm:object-cover transition-all duration-500 z-10" />
+    </div>
+
+    <!-- Konten -->
+    <div class="relative flex-1 px-4 py-2 sm:py-0 flex flex-col justify-center text-center sm:text-left z-10">
+      <a id="adTitle" href="#" target="_blank"
+         class="text-base font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 mb-1 transition-colors duration-300">
+         Loading...
+      </a>
+      <a id="buyBtn" href="#" target="_blank"
+   class="inline-flex items-center gap-2 w-max mx-auto sm:mx-0 border border-orange-500 text-orange-600 bg-white hover:bg-orange-50 text-sm font-semibold px-4 py-2 rounded-md transition">
+   <img src="https://img.icons8.com/color/48/shopee.png" alt="Shopee" class="w-6 h-6" />
+   BELI DISINI
+</a>
+
+    </div>
+  </div>
   </main>
 
   <div id="notif-tooltip"
