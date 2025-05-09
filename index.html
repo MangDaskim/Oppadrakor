@@ -102,32 +102,8 @@
   <main class="pt-5 container mx-auto px-4 py-8">
     <!-- Iklan Atas -->
       <!-- Iklan -->
-  <div id="affiliateAd"
-       class="w-full max-w-[728px] bg-white rounded-xl shadow-lg overflow-hidden flex flex-col sm:flex-row items-center sm:h-[90px] relative">
-
-    <!-- Background Blur di HP -->
-    <div id="blurBg" class="absolute inset-0 sm:hidden bg-blur z-0 transition-all duration-500"></div>
-
-    <!-- Gambar -->
-    <div class="relative w-full sm:w-[90px] h-[150px] sm:h-full flex-shrink-0 z-10 flex items-center justify-center">
-      <img id="adImage" src="" alt="Produk"
-           class="w-full h-full object-contain sm:object-cover transition-all duration-500 z-10" />
-    </div>
-
-    <!-- Konten -->
-    <div class="relative flex-1 px-4 py-2 sm:py-0 flex flex-col justify-center text-center sm:text-left z-10">
-      <a id="adTitle" href="#" target="_blank"
-         class="text-base font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 mb-1 transition-colors duration-300">
-         Loading...
-      </a>
-      <a id="buyBtn" href="#" target="_blank"
-   class="inline-flex items-center gap-2 w-max mx-auto sm:mx-0 border border-orange-500 text-orange-600 bg-white hover:bg-orange-50 text-sm font-semibold px-4 py-2 rounded-md transition">
-   <img src="https://img.icons8.com/color/48/shopee.png" alt="Shopee" class="w-6 h-6" />
-   BELI DISINI
-</a>
-
-    </div>
-  </div>
+  <div class="affiliateAd"></div>
+<div class="affiliateAd my-4"></div>
 
     <div class="pt-[30px]"></div>
     
@@ -136,35 +112,11 @@
   <div class="w-20 h-20 border-4 border-t-blue-500 border-b-pink-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
 </div>
     <div id="drama-list" class="space-y-6"></div>
-
+<div class="pt-[30px]"></div>
     <!-- Iklan Bawah -->
     <!-- Iklan -->
-  <div id="affiliateAd"
-       class="w-full max-w-[728px] bg-white rounded-xl shadow-lg overflow-hidden flex flex-col sm:flex-row items-center sm:h-[90px] relative">
-
-    <!-- Background Blur di HP -->
-    <div id="blurBg" class="absolute inset-0 sm:hidden bg-blur z-0 transition-all duration-500"></div>
-
-    <!-- Gambar -->
-    <div class="relative w-full sm:w-[90px] h-[150px] sm:h-full flex-shrink-0 z-10 flex items-center justify-center">
-      <img id="adImage" src="" alt="Produk"
-           class="w-full h-full object-contain sm:object-cover transition-all duration-500 z-10" />
-    </div>
-
-    <!-- Konten -->
-    <div class="relative flex-1 px-4 py-2 sm:py-0 flex flex-col justify-center text-center sm:text-left z-10">
-      <a id="adTitle" href="#" target="_blank"
-         class="text-base font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 mb-1 transition-colors duration-300">
-         Loading...
-      </a>
-      <a id="buyBtn" href="#" target="_blank"
-   class="inline-flex items-center gap-2 w-max mx-auto sm:mx-0 border border-orange-500 text-orange-600 bg-white hover:bg-orange-50 text-sm font-semibold px-4 py-2 rounded-md transition">
-   <img src="https://img.icons8.com/color/48/shopee.png" alt="Shopee" class="w-6 h-6" />
-   BELI DISINI
-</a>
-
-    </div>
-  </div>
+  <div class="affiliateAd"></div>
+<div class="affiliateAd my-4"></div>
   </main>
 
   <div id="notif-tooltip"
@@ -304,68 +256,97 @@
 
     <!-- Script Iklan Atas / Bawah -->
   <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKABHIQDUTSsVMo3QO0Banf6t0S8ruFmBlfJ8E6NXf1KnQhIr01zRgTA90qsWCOVRTV4rQjqT-vj0i/pub?output=csv"; // Ganti dengan CSV kamu
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv"; // Ganti Sheet ID kamu
+let adQueue = [];
+let currentIndex = 0;
+const displayedAds = new Set();
 
-    let adQueue = [];
-    let currentIndex = 0;
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
+function getNextAd() {
+  if (displayedAds.size >= adQueue.length) {
+    displayedAds.clear();
+    shuffle(adQueue);
+  }
+
+  for (let i = 0; i < adQueue.length; i++) {
+    if (!displayedAds.has(i)) {
+      displayedAds.add(i);
+      return adQueue[i];
     }
+  }
 
-    function showAd(ad) {
-      const images = ad.gambar.split(',').map(url => url.trim());
-      const title = ad.judul;
-      const link = ad.link;
+  return adQueue[0]; // fallback
+}
 
-      let imgIndex = 0;
-      const adImage = document.getElementById("adImage");
-      const blurBg = document.getElementById("blurBg");
-      const adTitle = document.getElementById("adTitle");
-      const buyBtn = document.getElementById("buyBtn");
+function createAdElement(ad, container) {
+  const images = ad.gambar.split(',').map(img => img.trim());
+  let imgIndex = 0;
 
-      function updateImage() {
-        adImage.src = images[imgIndex];
-        blurBg.style.backgroundImage = `url('${images[imgIndex]}')`;
-        imgIndex = (imgIndex + 1) % images.length;
-      }
+  const wrapper = document.createElement('div');
+  wrapper.className = "relative w-full max-w-[728px] bg-white rounded-xl shadow overflow-hidden flex flex-col sm:flex-row items-center sm:h-[90px]";
 
-      adTitle.textContent = title;
-      adTitle.href = link;
-      buyBtn.href = link;
+  wrapper.innerHTML = `
+    <div class="absolute inset-0 sm:hidden bg-cover bg-center blur-md opacity-40 z-0 transition-all duration-500" style="background-image: url('${images[0]}');"></div>
+    <div class="relative w-full sm:w-[90px] h-[150px] sm:h-full flex-shrink-0 z-10 flex items-center justify-center">
+      <img src="${images[0]}" class="w-full h-full object-contain sm:object-cover transition-all duration-500 z-10 ad-image" />
+    </div>
+    <div class="relative flex-1 px-4 py-2 sm:py-0 flex flex-col justify-center text-center sm:text-left z-10">
+      <a href="${ad.link}" target="_blank"
+         class="text-base font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 mb-1">
+         ${ad.judul}
+      </a>
+      <a href="${ad.link}" target="_blank"
+         class="inline-flex items-center gap-2 w-max mx-auto sm:mx-0 border border-orange-500 text-orange-600 bg-white hover:bg-orange-50 text-sm font-semibold px-4 py-2 rounded-md transition">
+         <img src="https://img.icons8.com/color/48/shopee.png" class="w-6 h-6" />
+         BELI DI SINI
+      </a>
+    </div>
+  `;
 
-      updateImage();
-      clearInterval(window.imageTimer);
-      window.imageTimer = setInterval(updateImage, 3000);
-    }
+  container.innerHTML = "";
+  container.appendChild(wrapper);
 
-    function cycleAds() {
-      if (currentIndex >= adQueue.length) {
-        shuffle(adQueue);
-        currentIndex = 0;
-      }
-      showAd(adQueue[currentIndex]);
-      currentIndex++;
-    }
+  // Ganti gambar otomatis
+  const adImage = wrapper.querySelector(".ad-image");
+  const bgBlur = wrapper.querySelector(".absolute");
+  setInterval(() => {
+    imgIndex = (imgIndex + 1) % images.length;
+    adImage.src = images[imgIndex];
+    bgBlur.style.backgroundImage = `url('${images[imgIndex]}')`;
+  }, 3000);
+}
 
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        adQueue = results.data.filter(row => row.judul && row.gambar && row.link);
-        if (adQueue.length === 0) return;
-        shuffle(adQueue);
-        cycleAds();
-        setInterval(cycleAds, 10000); // Ganti iklan setiap 10 detik
-      },
-      error: function(err) {
-        console.error("Gagal load CSV:", err);
-      }
+Papa.parse(csvUrl, {
+  download: true,
+  header: true,
+  complete: function(results) {
+    adQueue = results.data.filter(row => row.judul && row.gambar && row.link);
+    if (adQueue.length === 0) return;
+
+    shuffle(adQueue);
+
+    const containers = document.querySelectorAll('.affiliateAd');
+    containers.forEach(container => {
+      const ad = getNextAd();
+      createAdElement(ad, container);
     });
-  </script>
+
+    // Set interval per container untuk ganti iklan
+    setInterval(() => {
+      containers.forEach(container => {
+        const ad = getNextAd();
+        createAdElement(ad, container);
+      });
+    }, 10000);
+  }
+});
+</script>
 
     <style>
     .line-clamp-2 {
