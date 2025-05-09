@@ -101,8 +101,34 @@
 
   <main class="pt-5 container mx-auto px-4 py-8">
     <!-- Iklan Atas -->
-    <div class="bg-yellow-300 text-center p-4 mb-6 rounded shadow">Iklan Banner Dummy (Atas)</div>
+      <!-- Iklan -->
+  <div id="affiliateAd"
+       class="w-full max-w-[728px] bg-white rounded-xl shadow-lg overflow-hidden flex flex-col sm:flex-row items-center sm:h-[90px] relative">
 
+    <!-- Background Blur di HP -->
+    <div id="blurBg" class="absolute inset-0 sm:hidden bg-blur z-0 transition-all duration-500"></div>
+
+    <!-- Gambar -->
+    <div class="relative w-full sm:w-[90px] h-[150px] sm:h-full flex-shrink-0 z-10 flex items-center justify-center">
+      <img id="adImage" src="" alt="Produk"
+           class="w-full h-full object-contain sm:object-cover transition-all duration-500 z-10" />
+    </div>
+
+    <!-- Konten -->
+    <div class="relative flex-1 px-4 py-2 sm:py-0 flex flex-col justify-center text-center sm:text-left z-10">
+      <a id="adTitle" href="#" target="_blank"
+         class="text-base font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 mb-1 transition-colors duration-300">
+         Loading...
+      </a>
+      <a id="buyBtn" href="#" target="_blank"
+   class="inline-flex items-center gap-2 w-max mx-auto sm:mx-0 border border-orange-500 text-orange-600 bg-white hover:bg-orange-50 text-sm font-semibold px-4 py-2 rounded-md transition">
+   <img src="https://img.icons8.com/color/48/shopee.png" alt="Shopee" class="w-6 h-6" />
+   BELI DISINI
+</a>
+
+    </div>
+  </div>
+    
     <!-- Popup Loading Spinner -->
 <div id="loading-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999] hidden transition-opacity duration-300">
   <div class="w-20 h-20 border-4 border-t-blue-500 border-b-pink-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
@@ -248,6 +274,71 @@
     });
   });
 </script>
+
+    <!-- Script Iklan Atas / Bawah -->
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKABHIQDUTSsVMo3QO0Banf6t0S8ruFmBlfJ8E6NXf1KnQhIr01zRgTA90qsWCOVRTV4rQjqT-vj0i/pub?output=csv"; // Ganti dengan CSV kamu
+
+    let adQueue = [];
+    let currentIndex = 0;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function showAd(ad) {
+      const images = ad.gambar.split(',').map(url => url.trim());
+      const title = ad.judul;
+      const link = ad.link;
+
+      let imgIndex = 0;
+      const adImage = document.getElementById("adImage");
+      const blurBg = document.getElementById("blurBg");
+      const adTitle = document.getElementById("adTitle");
+      const buyBtn = document.getElementById("buyBtn");
+
+      function updateImage() {
+        adImage.src = images[imgIndex];
+        blurBg.style.backgroundImage = `url('${images[imgIndex]}')`;
+        imgIndex = (imgIndex + 1) % images.length;
+      }
+
+      adTitle.textContent = title;
+      adTitle.href = link;
+      buyBtn.href = link;
+
+      updateImage();
+      clearInterval(window.imageTimer);
+      window.imageTimer = setInterval(updateImage, 3000);
+    }
+
+    function cycleAds() {
+      if (currentIndex >= adQueue.length) {
+        shuffle(adQueue);
+        currentIndex = 0;
+      }
+      showAd(adQueue[currentIndex]);
+      currentIndex++;
+    }
+
+    Papa.parse(csvUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        adQueue = results.data.filter(row => row.judul && row.gambar && row.link);
+        if (adQueue.length === 0) return;
+        shuffle(adQueue);
+        cycleAds();
+        setInterval(cycleAds, 10000); // Ganti iklan setiap 10 detik
+      },
+      error: function(err) {
+        console.error("Gagal load CSV:", err);
+      }
+    });
+  </script>
 
 
 
