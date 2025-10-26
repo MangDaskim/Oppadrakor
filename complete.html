@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Drakor Complete</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body class="bg-gray-100 font-sans pb-20">
@@ -39,13 +39,11 @@
     </div>
   </header>
 
-  <div class="pt-[116px]"></div>
+  <div class="pt-[88px]"></div>
 
   <main class="container mx-auto px-4 py-6">
-    <!-- Iklan -->
-  <div class="affiliateAd"></div>
-
-    <div class="pt-[30px]"></div>
+    <!-- Iklan Atas -->
+    <div class="bg-yellow-300 text-center p-4 mb-6 rounded shadow">Iklan Banner Dummy (Atas)</div>
 
     <!-- Search & Filter -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
@@ -61,32 +59,23 @@
 
     <!-- Pagination -->
     <div class="flex justify-center items-center mt-6 space-x-2" id="pagination"></div>
-
-    <div class="pt-[30px]"></div>
-
-    <!-- Iklan -->
-  <div class="affiliateAd"></div>
   </main>
 
-<!-- Floating Bottom Menu -->
-<nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
-  <a href="/" id="menu-home" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-    <i data-lucide="tv" class="w-6 h-6 mb-1"></i>
-    <span>Ongoing</span>
-  </a>
-  <a href="/complete" id="menu-complete" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-    <i data-lucide="check-circle" class="w-6 h-6 mb-1"></i>
-    <span>Complete</span>
-  </a>
-  <a href="/jadwal" id="menu-jadwal" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-    <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
-    <span>Jadwal</span>
-  </a>
-  <a href="/upcoming" id="menu-upcoming" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-    <i data-lucide="clock" class="w-6 h-6 mb-1"></i>
-    <span>Upcoming</span>
-  </a>
-</nav>
+  <!-- Bottom Menu -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
+    <a href="/" id="menu-home" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+      <i data-lucide="tv" class="w-6 h-6 mb-1"></i>
+      <span>Ongoing</span>
+    </a>
+    <a href="/complete" id="menu-complete" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+      <i data-lucide="check-circle" class="w-6 h-6 mb-1"></i>
+      <span>Complete</span>
+    </a>
+    <a href="/jadwal" id="menu-jadwal" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
+      <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
+      <span>Jadwal</span>
+    </a>
+  </nav>
   
   <script>
     // Fungsi aktifkan menu sesuai URL
@@ -95,8 +84,7 @@
       const menus = {
         "/": "menu-home",
         "/complete": "menu-complete",
-        "/jadwal": "menu-jadwal",
-        "/upcoming": "menu-upcoming"
+        "/jadwal": "menu-jadwal"
       };
   
       const activeMenu = menus[path];
@@ -123,20 +111,251 @@
       color: #1e40af; /* Warna biru saat hover */
     }
   </style>
+  
+  <script>
+    lucide.createIcons();
 
-     <!-- Histats.com  START  (aync)-->
-     <script type="text/javascript">var _Hasync= _Hasync|| [];
-      _Hasync.push(['Histats.start', '1,4947528,4,0,0,0,00010000']);
-      _Hasync.push(['Histats.fasi', '1']);
-      _Hasync.push(['Histats.track_hits', '']);
-      (function() {
-      var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
-      hs.src = ('//s10.histats.com/js15_as.js');
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
-      })();</script>
-      <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?4947528&101" alt="" border="0"></a></noscript>
-      <!-- Histats.com  END  -->
+const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEcME2Vlq8bv3iQiy_VAvFWuI_Lic_rp4pnT46r4yNv7Q8VCYtjE0Y5PiTsp__9ze6_kpkbJNNHXWg/pub?output=csv';
+let dramas = [];
+let filtered = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let currentLetter = 'ALL';
 
-<script src="/complete.js"></script>
+const loadingPopup = document.getElementById('loading-popup');
+
+async function fetchData() {
+  try {
+    loadingPopup.classList.remove('hidden'); // Tampilkan loading
+
+    const res = await fetch(sheetURL);
+    const text = await res.text();
+    const rows = text.trim().split('\n').slice(1);
+    dramas = rows
+      .map(r => {
+        const [judul, genre, episode, gambar, embed, slug] = r.split(',');
+        return { judul, genre, episode, gambar, slug };
+      })
+      .filter(d => d.episode?.toUpperCase().includes('END'))
+      .reverse();
+
+    renderDrama();
+  } catch (err) {
+    console.error('Gagal fetch data:', err);
+  } finally {
+    loadingPopup.classList.add('hidden'); // Sembunyikan loading
+  }
+}
+
+function renderDrama() {
+  const container = document.getElementById('drama-list');
+  const pagination = document.getElementById('pagination');
+  const keyword = document.getElementById('searchInput').value.toLowerCase();
+
+  filtered = dramas.filter(d =>
+    (currentLetter === 'ALL' || d.judul.startsWith(currentLetter)) &&
+    d.judul.toLowerCase().includes(keyword)
+  );
+
+  const start = (currentPage - 1) * itemsPerPage;
+  const pageData = filtered.slice(start, start + itemsPerPage);
+
+  container.innerHTML = '';
+  pageData.forEach((d, i) => {
+    const item = document.createElement('a');
+    item.href = `/complete/${d.slug}`;
+    item.className = "flex bg-white rounded-lg shadow-md overflow-hidden hover:bg-gray-50 transition";
+    item.innerHTML = `
+      <img src="${d.gambar}" alt="${d.judul}" class="w-28 sm:w-32 object-cover">
+      <div class="p-3 text-sm">
+        <h2 class="text-lg font-semibold mb-1">${d.judul}</h2>
+        <p class="text-gray-600 mb-0.5">Genre: ${d.genre}</p>
+        <p class="text-gray-600">Episode: ${d.episode}</p>
+      </div>
+    `;
+    container.appendChild(item);
+
+    if (i === 4) {
+      const ad = document.createElement('div');
+      ad.className = "bg-blue-200 text-center p-4 rounded shadow";
+      ad.textContent = "Iklan Tengah Dummy (Setelah item ke-5)";
+      container.appendChild(ad);
+    }
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  pagination.innerHTML = '';
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.className = `px-3 py-1 rounded border ${i === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-gray-200'}`;
+    btn.onclick = () => {
+      currentPage = i;
+      renderDrama();
+    };
+    pagination.appendChild(btn);
+  }
+}
+
+// Search Event
+document.addEventListener('input', e => {
+  if (e.target.id === 'searchInput') {
+    currentPage = 1;
+    renderDrama();
+  }
+});
+
+// Filter Alphabet
+const alphabet = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
+const filterContainer = document.getElementById('filter-container');
+
+const allBtn = document.createElement('button');
+allBtn.textContent = 'ALL';
+allBtn.className = 'px-3 py-1 rounded border text-xs transition hover:bg-blue-500 hover:text-white';
+allBtn.onclick = () => { currentLetter = 'ALL'; currentPage = 1; renderDrama(); };
+filterContainer.appendChild(allBtn);
+
+alphabet.forEach(l => {
+  const btn = document.createElement('button');
+  btn.textContent = l;
+  btn.className = 'px-3 py-1 rounded border text-xs transition hover:bg-blue-500 hover:text-white';
+  btn.onclick = () => { currentLetter = l; currentPage = 1; renderDrama(); };
+  filterContainer.appendChild(btn);
+});
+
+fetchData();
+  </script>
+
+<script>
+  const marqueeSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X_HyDrdsBv4cnzL_JgSZYMGsgGSLYcev96X1g7X3R0LgnrhH7yTvdDfOc_0G8AFZG1S_Mp0zaJ5/pub?output=csv';
+  const infoDonasiSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=0&single=true&output=csv';
+  const infoSendiriSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=1921525187&single=true&output=csv';
+
+  function pecahHari(jadwal) {
+    const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    let hasil = [];
+    const bagian = jadwal.split(',');
+    bagian.forEach(segment => {
+      segment = segment.trim();
+      if (segment.includes('-')) {
+        const [start, end] = segment.split('-').map(s => s.trim());
+        const idxAwal = hariList.indexOf(start);
+        const idxAkhir = hariList.indexOf(end);
+        if (idxAwal !== -1 && idxAkhir !== -1 && idxAwal <= idxAkhir) {
+          hasil.push(...hariList.slice(idxAwal, idxAkhir + 1));
+        }
+      } else if (hariList.includes(segment)) {
+        hasil.push(segment);
+      }
+    });
+    return hasil;
+  }
+
+  function acakSatu(array) {
+    const filtered = array.filter(Boolean);
+    return filtered[Math.floor(Math.random() * filtered.length)];
+  }
+
+  function simpanEpisode(judul, episode) {
+    const key = `eps_${judul}`;
+    const data = {
+      episode: episode,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function ambilEpisodeSebelumnya(judul) {
+    const key = `eps_${judul}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  }
+
+  function ambilNomorEpisode(str) {
+    const cocok = str?.match(/\d+/);
+    return cocok ? parseInt(cocok[0]) : null;
+  }
+
+  async function loadMarquee() {
+    try {
+      const [res1, res2, res3] = await Promise.all([
+        fetch(marqueeSheet),
+        fetch(infoDonasiSheet),
+        fetch(infoSendiriSheet)
+      ]);
+
+      const [csv1, csv2, csv3] = await Promise.all([
+        res1.text(),
+        res2.text(),
+        res3.text()
+      ]);
+
+      const dataDrama = Papa.parse(csv1, { header: true }).data;
+      const semuaDonasi = Papa.parse(csv2, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+      const semuaSendiri = Papa.parse(csv3, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+
+      const donasiRandom = acakSatu(semuaDonasi);
+      const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+
+      const sekarang = new Date();
+      const infoDramaHariIni = [];
+
+      dataDrama.forEach(row => {
+        const judul = row.Judul?.trim();
+        const epsSekarang = row.Episode?.trim();
+        const jadwal = row.Jadwal?.trim();
+
+        if (!judul || !epsSekarang || !jadwal) return;
+
+        const hariTayang = pecahHari(jadwal);
+        if (!hariTayang.includes(hariIni)) return;
+
+        const nomorSekarang = ambilNomorEpisode(epsSekarang);
+        if (!nomorSekarang) return;
+
+        const dataLokal = ambilEpisodeSebelumnya(judul);
+        const nomorSebelumnya = ambilNomorEpisode(dataLokal?.episode);
+        const waktuSimpan = dataLokal?.timestamp ? new Date(dataLokal.timestamp) : null;
+        const bedaHari = waktuSimpan && (waktuSimpan.toDateString() !== sekarang.toDateString());
+
+        if (nomorSebelumnya && nomorSekarang > nomorSebelumnya) {
+          // Episode bertambah: tampilkan info episode terbaru
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else if (nomorSekarang === nomorSebelumnya && waktuSimpan && !bedaHari) {
+          // Episode sudah ditandai sebagai terbaru hari ini
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else {
+          // Belum ada update, tampilkan info akan tayang
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`${judul} Episode ${nomorSekarang + 1} Akan Tayang Hari Ini, Jangan Lupa Nonton Yaa.`);
+        }
+      });
+
+      const semuaInfo = [];
+      const maxLen = Math.max(infoDramaHariIni.length, semuaSendiri.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (infoDramaHariIni[i]) semuaInfo.push(infoDramaHariIni[i]);
+        if (i === 0 && donasiRandom) semuaInfo.push(donasiRandom);
+        if (semuaSendiri[i]) semuaInfo.push(semuaSendiri[i]);
+      }
+
+      const separator = '<span class="mx-3 text-blue-300 font-bold">|</span>';
+      document.getElementById('marquee-text').innerHTML = semuaInfo.map(t => `<span>${t}</span>`).join(separator);
+    } catch (err) {
+      console.error(err);
+      document.getElementById('marquee-text').textContent = 'Gagal memuat info.';
+    }
+  }
+
+  loadMarquee();
+</script>
+
 </body>
 </html>
