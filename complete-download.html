@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Download Drama - Oppadrakor</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     .progress-bar {
       height: 6px;
@@ -14,28 +14,16 @@
       width: 0%;
       transition: width 1s linear;
     }
-
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .bg-blur {
-      background-size: cover;
-      background-position: center;
-      filter: blur(20px);
-      opacity: 0.4;
-    }
-  </style>
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col justify-between">
 
   <div class="max-w-2xl w-full mx-auto p-4 space-y-6">
 
-    <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+    <!-- Iklan Dummy Atas -->
+    <div class="bg-yellow-200 p-4 text-center rounded-lg shadow">
+      Iklan Dummy Atas
+    </div>
 
     <!-- Konten Utama -->
     <div id="content" class="bg-white p-6 rounded-lg shadow text-center">
@@ -80,12 +68,149 @@
       <div id="error" class="text-red-600 hidden">Drama tidak ditemukan.</div>
     </div>
 
-    <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+    <!-- Iklan Dummy Bawah -->
+    <div class="bg-yellow-200 p-4 text-center rounded-lg shadow">
+      Iklan Dummy Bawah
+    </div>
 
   </div>
 
-<script src="/complete-download.js"></script>
+  <script>
+    const sheetDramaURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEcME2Vlq8bv3iQiy_VAvFWuI_Lic_rp4pnT46r4yNv7Q8VCYtjE0Y5PiTsp__9ze6_kpkbJNNHXWg/pub?output=csv';
+    const sheetIklanURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSvARu6vFEtwPlYrZK1doUZY0zO1cH72T_Yzi9SG3Atle1XHRZL2IssqDZR7GE1PNzEIa05XvYzfbSo/pub?output=csv';
+    
+    function getSlugFromUrl() {
+      const parts = window.location.pathname.split('/');
+      return parts[2] || '';
+    }
+    
+    async function fetchCSV(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      return Papa.parse(text, { header: true }).data;
+    }
+    
+    async function loadDownloadPage() {
+      try {
+        const [dramaData, iklanData] = await Promise.all([
+          fetchCSV(sheetDramaURL),
+          fetchCSV(sheetIklanURL)
+        ]);
+    
+        const slug = getSlugFromUrl();
+        const drama = dramaData.find(row => row['Slug']?.trim() === slug);
+    
+        const judulEl = document.getElementById('judul');
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const buttonsEl = document.getElementById('buttons');
+    
+        if (!drama) {
+          loadingEl.classList.add('hidden');
+          errorEl.classList.remove('hidden');
+          judulEl.innerText = "Drama tidak ditemukan.";
+          return;
+        }
+    
+        document.title = `Download ${slug.replace(/-/g, ' ').toUpperCase()} - Oppadrakor`;
+        judulEl.innerText = `Download ${slug.replace(/-/g, ' ').toUpperCase()}`;
+        loadingEl.classList.add('hidden');
+        buttonsEl.classList.remove('hidden');
+    
+        const iklanLinks = iklanData.map(row => row['link_aksi']).filter(link => link && link.trim() !== '');
+        const randomIklan = getRandomItems(iklanLinks, 3);
+    
+        setupButton('iklan-btn-1', 'progress-1', randomIklan[0], 'iklan-btn-2');
+        setupButton('iklan-btn-2', 'progress-2', randomIklan[1], 'iklan-btn-3');
+        setupButton('iklan-btn-3', 'progress-3', randomIklan[2], 'download-btn', true);
+    
+        // === Smart Fallback Handling ===
+        document.getElementById('download-btn').onclick = () => {
+          const linkDownload = drama['Link_Download']?.trim();
+    
+          if (linkDownload) {
+            window.open(linkDownload, '_blank');
+          } else {
+            alert('Link download belum tersedia. Silakan coba lagi nanti.');
+          }
+        };
+    
+        document.getElementById('iklan-btn-1').disabled = false;
+    
+      } catch (error) {
+        console.error("Gagal memuat data:", error);
+        document.getElementById('judul').innerText = "Terjadi kesalahan.";
+      }
+    }
+    
+    function setupButton(buttonId, progressId, url, nextButtonId, isLast = false) {
+      const button = document.getElementById(buttonId);
+      const progressBar = document.getElementById(progressId);
+      const nextButton = document.getElementById(nextButtonId);
+      const infoText = document.getElementById('info'); // Ambil element info
+    
+      button.onclick = () => {
+        window.open(url, '_blank');
+        button.disabled = true;
+        button.classList.remove('bg-blue-500');
+        button.classList.add('bg-gray-400', 'cursor-not-allowed');
+    
+        let seconds = 10;
+        progressBar.style.width = '0%';
+        let currentPercent = 0;
+    
+        const interval = setInterval(() => {
+          seconds--;
+          currentPercent += 10;
+          progressBar.style.width = `${currentPercent}%`;
+    
+          if (seconds <= 0) {
+            clearInterval(interval);
+    
+            nextButton.disabled = false;
+            nextButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            nextButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+    
+            if (isLast) {
+              nextButton.innerText = "Link Download Tersedia!";
+              infoText.innerText = "Misi selesai! Silakan klik tombol download untuk mendapatkan file.";
+    
+              // Tampilkan popup
+              setTimeout(() => {
+                showPopup("Misi Selesai!", "Tombol download sekarang aktif. Silakan klik untuk mulai mengunduh.");
+              }, 500); // sedikit delay biar smooth
+            }
+          }
+        }, 1000);
+      };
+    }
+    
+    function showPopup(title, message) {
+      const popup = document.createElement('div');
+      popup.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50';
+      popup.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-sm text-center shadow-lg">
+          <h2 class="text-xl font-bold mb-2">${title}</h2>
+          <p class="mb-4">${message}</p>
+          <button id="closePopup" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Oke</button>
+        </div>
+      `;
+      document.body.appendChild(popup);
+    
+      document.getElementById('closePopup').onclick = () => {
+        popup.remove();
+      };
+    }
+    
+    
+    function getRandomItems(arr, count) {
+      const shuffled = [...arr].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+    
+    loadDownloadPage();
+    lucide.createIcons();
+    </script>
 
 </body>
 </html>
