@@ -42,17 +42,23 @@
 <!-- Konten -->
 <div class="max-w-4xl mx-auto mt-36 px-4">
 
-  <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+  <!-- Iklan Atas -->
+  <div class="bg-yellow-200 text-center py-4 rounded-lg shadow-md text-yellow-900 font-semibold text-sm mb-6">
+    Iklan Dummy (728x90)
+  </div>
 
   <!-- Popup Loading Spinner -->
 <div id="loading-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999] hidden transition-opacity duration-300">
   <div class="w-20 h-20 border-4 border-t-blue-500 border-b-pink-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
 </div>
+
   <div id="jadwal-list" class="space-y-4"></div>
 
-  <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+  <!-- Iklan Bawah -->
+  <div class="bg-yellow-200 text-center py-4 rounded-lg shadow-md text-yellow-900 font-semibold text-sm mt-10">
+    Iklan Dummy (728x90)
+  </div>
+</div>
 
 <!-- Floating Bottom Menu -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
@@ -68,10 +74,6 @@
     <i data-lucide="calendar-days" class="w-6 h-6 mb-1"></i>
     <span>Jadwal</span>
   </a>
-  <a href="/upcoming" id="menu-upcoming" class="menu-link flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors text-xs font-medium">
-    <i data-lucide="clock" class="w-6 h-6 mb-1"></i>
-    <span>Upcoming</span>
-  </a>
 </nav>
 
 <script>
@@ -81,8 +83,7 @@
     const menus = {
       "/": "menu-home",
       "/complete": "menu-complete",
-      "/jadwal": "menu-jadwal",
-      "/upcoming": "menu-upcoming"
+      "/jadwal": "menu-jadwal"
     };
 
     const activeMenu = menus[path];
@@ -110,19 +111,292 @@
   }
 </style>
 
-   <!-- Histats.com  START  (aync)-->
-   <script type="text/javascript">var _Hasync= _Hasync|| [];
-    _Hasync.push(['Histats.start', '1,4947528,4,0,0,0,00010000']);
-    _Hasync.push(['Histats.fasi', '1']);
-    _Hasync.push(['Histats.track_hits', '']);
-    (function() {
-    var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
-    hs.src = ('//s10.histats.com/js15_as.js');
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
-    })();</script>
-    <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?4947528&101" alt="" border="0"></a></noscript>
-    <!-- Histats.com  END  -->
+<script>
+  const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X_HyDrdsBv4cnzL_JgSZYMGsgGSLYcev96X1g7X3R0LgnrhH7yTvdDfOc_0G8AFZG1S_Mp0zaJ5/pub?output=csv';
+  const loadingPopup = document.getElementById('loading-popup');
 
-<script src="/jadwal.js"></script>
+  // Fungsi untuk mengubah berbagai format jadwal ke array hari
+  function parseJadwalToDays(jadwal) {
+    const daysOfWeek = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    let days = [];
+
+    if (!jadwal) return days;
+
+    const normalized = jadwal.toLowerCase()
+      .replace(/setiap hari/g, 'Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu')
+      .replace(/&/g, ',')
+      .replace(/dan/g, ',');
+
+    // Cek rentang (misal: Senin - Kamis)
+    if (normalized.includes('-')) {
+      const [startDay, endDay] = normalized.split('-').map(s => s.trim().charAt(0).toUpperCase() + s.trim().slice(1));
+      const startIdx = daysOfWeek.indexOf(startDay);
+      const endIdx = daysOfWeek.indexOf(endDay);
+      if (startIdx >= 0 && endIdx >= 0 && startIdx <= endIdx) {
+        for (let i = startIdx; i <= endIdx; i++) {
+          days.push(daysOfWeek[i]);
+        }
+      }
+    }
+
+    // Cek daftar hari (misal: Senin, Rabu, Jumat)
+    const splitDays = normalized.split(',').map(s => s.trim().charAt(0).toUpperCase() + s.trim().slice(1));
+    splitDays.forEach(day => {
+      if (daysOfWeek.includes(day) && !days.includes(day)) {
+        days.push(day);
+      }
+    });
+
+    return days;
+  }
+
+  async function loadJadwal() {
+    try {
+      loadingPopup.classList.remove('hidden');
+
+      const res = await fetch(sheetUrl);
+      const csv = await res.text();
+      const data = Papa.parse(csv, { header: true }).data;
+
+      const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      const groupedData = Object.fromEntries(hariList.map(day => [day, []]));
+
+      // Menambahkan hari ini ke bagian awal
+      const today = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+      const todayData = [];
+      
+      data.forEach(row => {
+        const jadwalText = row.Jadwal || '';
+        const days = parseJadwalToDays(jadwalText);
+
+        if (days.includes(today)) {
+          todayData.push(row);
+        }
+
+        days.forEach(day => {
+          if (groupedData[day]) {
+            groupedData[day].push(row);
+          }
+        });
+      });
+
+      const list = document.getElementById('jadwal-list');
+      list.innerHTML = '';
+
+      // Tampilkan hari ini di awal
+      if (todayData.length > 0) {
+        const todayTitle = document.createElement('div');
+        todayTitle.className = 'flex items-center gap-2 mt-8 mb-4 px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-50 rounded-lg shadow text-blue-800 text-lg font-semibold border-l-4 border-blue-500';
+        todayTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 4h10M5 11h14M5 15h14M5 19h14" />
+        </svg> Hari Ini`;
+        list.appendChild(todayTitle);
+
+        todayData.forEach(row => {
+          const link = document.createElement('a');
+          link.href = `/drama/${row.Slug}`;
+          link.className = "block";
+          link.setAttribute('title', row.Judul);
+
+          const container = document.createElement('div');
+          container.className = "flex bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:bg-gray-100 transition";
+
+          container.innerHTML = `
+            <img src="${row.Gambar}" alt="${row.Judul}" class="w-32 h-32 object-cover">
+            <div class="p-4 flex flex-col justify-between">
+              <div>
+                <h2 class="text-lg font-bold text-gray-800">${row.Judul}</h2>
+                <p class="text-sm text-gray-600">Genre: <strong>${row.Genre}</strong></p>
+                <p class="text-sm text-gray-600">Episode: <strong>${row.Episode}</strong></p>
+                <p class="text-sm text-gray-600">Jadwal: <strong>${row.Jadwal}</strong></p>
+              </div>
+            </div>
+          `;
+
+          link.appendChild(container);
+          list.appendChild(link);
+        });
+      }
+
+      // Tampilkan hari lainnya
+      hariList.forEach(day => {
+        if (groupedData[day].length > 0 && day !== today) {
+          const dayTitle = document.createElement('div');
+          dayTitle.className = 'flex items-center gap-2 mt-8 mb-4 px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-50 rounded-lg shadow text-blue-800 text-lg font-semibold border-l-4 border-blue-500';
+          dayTitle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 4h10M5 11h14M5 15h14M5 19h14" />
+          </svg> ${day}`;
+          list.appendChild(dayTitle);
+
+          groupedData[day].forEach(row => {
+            const link = document.createElement('a');
+            link.href = `/drama/${row.Slug}`;
+            link.className = "block";
+            link.setAttribute('title', row.Judul);
+
+            const container = document.createElement('div');
+            container.className = "flex bg-white rounded-lg shadow-md overflow-hidden mb-4 hover:bg-gray-100 transition";
+
+            container.innerHTML = `
+              <img src="${row.Gambar}" alt="${row.Judul}" class="w-32 h-32 object-cover">
+              <div class="p-4 flex flex-col justify-between">
+                <div>
+                  <h2 class="text-lg font-bold text-gray-800">${row.Judul}</h2>
+                  <p class="text-sm text-gray-600">Genre: <strong>${row.Genre}</strong></p>
+                  <p class="text-sm text-gray-600">Episode: <strong>${row.Episode}</strong></p>
+                  <p class="text-sm text-gray-600">Jadwal: <strong>${row.Jadwal}</strong></p>
+                </div>
+              </div>
+            `;
+
+            link.appendChild(container);
+            list.appendChild(link);
+          });
+        }
+      });
+
+    } catch (err) {
+      console.error('Error loading data:', err);
+      document.getElementById('jadwal-list').innerHTML = '<p class="text-center text-red-600">Gagal memuat data.</p>';
+    } finally {
+      loadingPopup.classList.add('hidden');
+    }
+  }
+
+  loadJadwal();
+  lucide.createIcons();
+</script>
+
+
+<script>
+  const marqueeSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X_HyDrdsBv4cnzL_JgSZYMGsgGSLYcev96X1g7X3R0LgnrhH7yTvdDfOc_0G8AFZG1S_Mp0zaJ5/pub?output=csv';
+  const infoDonasiSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=0&single=true&output=csv';
+  const infoSendiriSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=1921525187&single=true&output=csv';
+
+  function pecahHari(jadwal) {
+    const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    let hasil = [];
+    const bagian = jadwal.split(',');
+    bagian.forEach(segment => {
+      segment = segment.trim();
+      if (segment.includes('-')) {
+        const [start, end] = segment.split('-').map(s => s.trim());
+        const idxAwal = hariList.indexOf(start);
+        const idxAkhir = hariList.indexOf(end);
+        if (idxAwal !== -1 && idxAkhir !== -1 && idxAwal <= idxAkhir) {
+          hasil.push(...hariList.slice(idxAwal, idxAkhir + 1));
+        }
+      } else if (hariList.includes(segment)) {
+        hasil.push(segment);
+      }
+    });
+    return hasil;
+  }
+
+  function acakSatu(array) {
+    const filtered = array.filter(Boolean);
+    return filtered[Math.floor(Math.random() * filtered.length)];
+  }
+
+  function simpanEpisode(judul, episode) {
+    const key = `eps_${judul}`;
+    const data = {
+      episode: episode,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function ambilEpisodeSebelumnya(judul) {
+    const key = `eps_${judul}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  }
+
+  function ambilNomorEpisode(str) {
+    const cocok = str?.match(/\d+/);
+    return cocok ? parseInt(cocok[0]) : null;
+  }
+
+  async function loadMarquee() {
+    try {
+      const [res1, res2, res3] = await Promise.all([
+        fetch(marqueeSheet),
+        fetch(infoDonasiSheet),
+        fetch(infoSendiriSheet)
+      ]);
+
+      const [csv1, csv2, csv3] = await Promise.all([
+        res1.text(),
+        res2.text(),
+        res3.text()
+      ]);
+
+      const dataDrama = Papa.parse(csv1, { header: true }).data;
+      const semuaDonasi = Papa.parse(csv2, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+      const semuaSendiri = Papa.parse(csv3, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+
+      const donasiRandom = acakSatu(semuaDonasi);
+      const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+
+      const sekarang = new Date();
+      const infoDramaHariIni = [];
+
+      dataDrama.forEach(row => {
+        const judul = row.Judul?.trim();
+        const epsSekarang = row.Episode?.trim();
+        const jadwal = row.Jadwal?.trim();
+
+        if (!judul || !epsSekarang || !jadwal) return;
+
+        const hariTayang = pecahHari(jadwal);
+        if (!hariTayang.includes(hariIni)) return;
+
+        const nomorSekarang = ambilNomorEpisode(epsSekarang);
+        if (!nomorSekarang) return;
+
+        const dataLokal = ambilEpisodeSebelumnya(judul);
+        const nomorSebelumnya = ambilNomorEpisode(dataLokal?.episode);
+        const waktuSimpan = dataLokal?.timestamp ? new Date(dataLokal.timestamp) : null;
+        const bedaHari = waktuSimpan && (waktuSimpan.toDateString() !== sekarang.toDateString());
+
+        if (nomorSebelumnya && nomorSekarang > nomorSebelumnya) {
+          // Episode bertambah: tampilkan info episode terbaru
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else if (nomorSekarang === nomorSebelumnya && waktuSimpan && !bedaHari) {
+          // Episode sudah ditandai sebagai terbaru hari ini
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else {
+          // Belum ada update, tampilkan info akan tayang
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`${judul} Episode ${nomorSekarang + 1} Akan Tayang Hari Ini, Jangan Lupa Nonton Yaa.`);
+        }
+      });
+
+      const semuaInfo = [];
+      const maxLen = Math.max(infoDramaHariIni.length, semuaSendiri.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (infoDramaHariIni[i]) semuaInfo.push(infoDramaHariIni[i]);
+        if (i === 0 && donasiRandom) semuaInfo.push(donasiRandom);
+        if (semuaSendiri[i]) semuaInfo.push(semuaSendiri[i]);
+      }
+
+      const separator = '<span class="mx-3 text-blue-300 font-bold">|</span>';
+      document.getElementById('marquee-text').innerHTML = semuaInfo.map(t => `<span>${t}</span>`).join(separator);
+    } catch (err) {
+      console.error(err);
+      document.getElementById('marquee-text').textContent = 'Gagal memuat info.';
+    }
+  }
+
+  loadMarquee();
+</script>
+
 </body>
 </html>
