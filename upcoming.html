@@ -50,44 +50,39 @@
 <!-- Spacer karena header fixed -->
 <div class="pt-[116px]"></div>
 
-  <main class="pt-5 container mx-auto px-4 py-8">
-
-  <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+  <!-- Iklan Banner Atas -->
+  <div class="container mx-auto px-4 pb-3">
+    <div class="bg-yellow-300 text-center p-4 mb-4 rounded shadow">Iklan Banner Dummy (Atas)</div>
+  </div>
 
   <!-- Section Upcoming Drama -->
-  <div class="container mx-auto pb-6">
-    <div class="relative bg-gradient-to-r from-pink-50 to-white py-8 px-4 rounded-xl shadow-md">
-  <h1 class="text-center text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight">
-    Upcoming Drama Korea <br>
-    <span id="bulanSekarang" class="text-pink-600 underline decoration-wavy decoration-2 underline-offset-4">
-      <!-- Bulan -->
-    </span>
-  </h1>
-</div>
-
-    <div class="pt-[30px]"></div>
+  <div class="container mx-auto px-4 pb-6">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">
+      Upcoming Drama Korea <br><span id="bulanSekarang" class="text-pink-600"></span>
+    </h1>
     
     <div id="dramaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
   </div>
 
-  <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+  <!-- Iklan Banner Bawah -->
+  <div class="container mx-auto px-4 pt-2">
+    <div class="bg-yellow-300 text-center p-4 mt-4 rounded shadow">Iklan Banner Dummy (Bawah)</div>
+  </div>
 
   <!-- Modal -->
 <div id="modal" class="fixed inset-0 z-[9999] hidden bg-black bg-opacity-70 flex items-center justify-center">
   <div class="bg-white mx-4 sm:mx-6 md:mx-10 rounded-xl overflow-hidden shadow-2xl relative max-h-[95vh] flex flex-col w-full max-w-xl">
-    <button onclick="closeModal()" class="absolute top-3 right-4 text-white text-3xl font-bold z-[9999] hover:scale-125 transition">&times;</button>
+    <button onclick="closeModal()" class="absolute top-2 right-2 bg-white rounded-full p-1 shadow hover:bg-gray-200 z-[9999] hover:scale-125 transition">&times;</button>
     <img id="modal-image" src="" class="w-full h-72 object-cover" />
     <div class="p-5 overflow-y-auto flex-1">
       <h2 id="modal-title" class="text-2xl font-bold mb-2 text-gray-800"></h2>
       <p id="modal-date" class="text-sm text-gray-500 mb-3"></p>
+      <p id="modal-day" class="mt-1"></p><br>
       <div id="modal-genres" class="flex flex-wrap gap-2 mb-4"></div>
       <div class="text-sm text-gray-700 whitespace-pre-line max-h-48 overflow-y-auto pr-2" id="modal-sinopsis"></div>
     </div>
   </div>
 </div>
-  </main>
 
 <!-- Floating Bottom Menu -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
@@ -149,21 +144,6 @@
   const today = new Date();
   const bulanText = `- ${bulanID[today.getMonth()]} ${today.getFullYear()} -`;
   document.getElementById('bulanSekarang').textContent = bulanText;
-
-    function openModal(drama) {
-  document.getElementById('modal-image').src = drama.gambar;
-  document.getElementById('modal-title').textContent = drama.judul;
-  document.getElementById('modal-date').innerHTML = `<span class="text-gray-500">Tanggal Tayang:</span> <strong>${formatTanggalIndonesia(drama.tanggal)}</strong>`;
-  document.getElementById('modal-genres').innerHTML = createGenreTags(drama.genre);
-  document.getElementById('modal-sinopsis').textContent = drama.sinopsis;
-  document.getElementById('modal').classList.remove('hidden');
-}
-
-    function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
-    }
-  
-  lucide.createIcons();
 </script>
 
 <style>
@@ -189,6 +169,234 @@
   }
 </style>
 
-<script src="/upcoming.js"></script>
+  <script>
+const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQlXRVji85XGjn8w1V9UwjHxc0gOVzMfpGg0ZglR43qx6qSux0u_kb4YubhIa8ySIyHIO0sbCrRNphn/pub?output=csv';
+
+Papa.parse(sheetURL, {
+  download: true,
+  header: true,
+  complete: function(results) {
+    const dramaGrid = document.getElementById('dramaGrid');
+    results.data.forEach(drama => {
+      const card = document.createElement('div');
+      const countdownText = getCountdownText(drama.tanggal);
+      const countdownBadge = countdownText ? `
+        <div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded shadow">
+          ${countdownText}
+        </div>` : '';
+
+      const hariTayang = drama.hari_tayang ? `
+        <p class="text-[10px] text-gray-500 leading-tight mt-1">
+          Hari Tayang:<br/>
+          <span class="text-xs font-medium text-gray-700">${drama.hari_tayang}</span>
+        </p>` : '';
+
+      card.innerHTML = `
+        <div class="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden cursor-pointer">
+          <div class="relative">
+            ${countdownBadge}
+            <img src="${drama.gambar}" class="w-full aspect-[2/3] object-cover rounded-t-xl" />
+          </div>
+          <div class="p-3">
+            <div class="flex gap-1 mb-2 overflow-hidden whitespace-nowrap truncate">
+              ${createGenreTags(drama.genre)}
+            </div>
+            <h3 class="text-md font-semibold text-gray-800 truncate">${drama.judul}</h3>
+            <p class="text-[10px] text-gray-500 leading-tight">
+              Tanggal Tayang:<br/>
+              <span class="text-xs font-medium text-gray-700">${formatTanggalIndonesia(drama.tanggal)}</span>
+            </p>
+          </div>
+        </div>
+      `;
+      card.addEventListener('click', () => openModal(drama));
+      dramaGrid.appendChild(card);
+    });
+  }
+});
+
+function createGenreTags(genreStr) {
+  if (!genreStr) return '';
+  const genres = genreStr.split(',').map(g => g.trim());
+  return genres.map(g => `
+    <span class="bg-pink-100 text-pink-700 text-[10px] sm:text-xs font-medium px-2 py-1 rounded-full">${g}</span>
+  `).join('');
+}
+
+function getCountdownText(tanggalStr) {
+  const now = new Date();
+  const tayang = new Date(tanggalStr);
+  const diffTime = tayang - now;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays > 0 && diffDays <= 7) {
+    return `Tayang dalam ${diffDays} hari`;
+  }
+  return null;
+}
+
+function openModal(drama) {
+  document.getElementById('modal-image').src = drama.gambar;
+  document.getElementById('modal-title').textContent = drama.judul;
+  document.getElementById('modal-date').innerHTML = `
+    <span class="text-gray-500">Tanggal Tayang:</span> <strong>${formatTanggalIndonesia(drama.tanggal)}</strong>`;
+
+  // Hari tayang (tampilkan jika ada)
+  const hariTayangText = drama.hari_tayang ? `
+    <div class="text-sm text-gray-500">
+      <span class="text-gray-500">Hari Tayang:</span> <strong>${drama.hari_tayang}</strong>
+    </div>` : '';
+  document.getElementById('modal-day').innerHTML = hariTayangText;
+
+  document.getElementById('modal-genres').innerHTML = createGenreTags(drama.genre);
+  document.getElementById('modal-sinopsis').textContent = drama.sinopsis;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+}
+
+function formatTanggalIndonesia(tanggalStr) {
+  const date = new Date(tanggalStr);
+  if (isNaN(date)) return tanggalStr;
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  }).format(date);
+}
+  </script>
+
+<script>
+  const marqueeSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X_HyDrdsBv4cnzL_JgSZYMGsgGSLYcev96X1g7X3R0LgnrhH7yTvdDfOc_0G8AFZG1S_Mp0zaJ5/pub?output=csv';
+  const infoDonasiSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=0&single=true&output=csv';
+  const infoSendiriSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=1921525187&single=true&output=csv';
+
+  function pecahHari(jadwal) {
+    const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    let hasil = [];
+    const bagian = jadwal.split(',');
+    bagian.forEach(segment => {
+      segment = segment.trim();
+      if (segment.includes('-')) {
+        const [start, end] = segment.split('-').map(s => s.trim());
+        const idxAwal = hariList.indexOf(start);
+        const idxAkhir = hariList.indexOf(end);
+        if (idxAwal !== -1 && idxAkhir !== -1 && idxAwal <= idxAkhir) {
+          hasil.push(...hariList.slice(idxAwal, idxAkhir + 1));
+        }
+      } else if (hariList.includes(segment)) {
+        hasil.push(segment);
+      }
+    });
+    return hasil;
+  }
+
+  function acakSatu(array) {
+    const filtered = array.filter(Boolean);
+    return filtered[Math.floor(Math.random() * filtered.length)];
+  }
+
+  function simpanEpisode(judul, episode) {
+    const key = `eps_${judul}`;
+    const data = {
+      episode: episode,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function ambilEpisodeSebelumnya(judul) {
+    const key = `eps_${judul}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  }
+
+  function ambilNomorEpisode(str) {
+    const cocok = str?.match(/\d+/);
+    return cocok ? parseInt(cocok[0]) : null;
+  }
+
+  async function loadMarquee() {
+    try {
+      const [res1, res2, res3] = await Promise.all([
+        fetch(marqueeSheet),
+        fetch(infoDonasiSheet),
+        fetch(infoSendiriSheet)
+      ]);
+
+      const [csv1, csv2, csv3] = await Promise.all([
+        res1.text(),
+        res2.text(),
+        res3.text()
+      ]);
+
+      const dataDrama = Papa.parse(csv1, { header: true }).data;
+      const semuaDonasi = Papa.parse(csv2, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+      const semuaSendiri = Papa.parse(csv3, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+
+      const donasiRandom = acakSatu(semuaDonasi);
+      const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+
+      const sekarang = new Date();
+      const infoDramaHariIni = [];
+
+      dataDrama.forEach(row => {
+        const judul = row.Judul?.trim();
+        const epsSekarang = row.Episode?.trim();
+        const jadwal = row.Jadwal?.trim();
+
+        if (!judul || !epsSekarang || !jadwal) return;
+
+        const hariTayang = pecahHari(jadwal);
+        if (!hariTayang.includes(hariIni)) return;
+
+        const nomorSekarang = ambilNomorEpisode(epsSekarang);
+        if (!nomorSekarang) return;
+
+        const dataLokal = ambilEpisodeSebelumnya(judul);
+        const nomorSebelumnya = ambilNomorEpisode(dataLokal?.episode);
+        const waktuSimpan = dataLokal?.timestamp ? new Date(dataLokal.timestamp) : null;
+        const bedaHari = waktuSimpan && (waktuSimpan.toDateString() !== sekarang.toDateString());
+
+        if (nomorSebelumnya && nomorSekarang > nomorSebelumnya) {
+          // Episode bertambah: tampilkan info episode terbaru
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else if (nomorSekarang === nomorSebelumnya && waktuSimpan && !bedaHari) {
+          // Episode sudah ditandai sebagai terbaru hari ini
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else {
+          // Belum ada update, tampilkan info akan tayang
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`${judul} Episode ${nomorSekarang + 1} Akan Tayang Hari Ini, Jangan Lupa Nonton Yaa.`);
+        }
+      });
+
+      const semuaInfo = [];
+      const maxLen = Math.max(infoDramaHariIni.length, semuaSendiri.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (infoDramaHariIni[i]) semuaInfo.push(infoDramaHariIni[i]);
+        if (i === 0 && donasiRandom) semuaInfo.push(donasiRandom);
+        if (semuaSendiri[i]) semuaInfo.push(semuaSendiri[i]);
+      }
+
+      const separator = '<span class="mx-3 text-blue-300 font-bold">|</span>';
+      document.getElementById('marquee-text').innerHTML = semuaInfo.map(t => `<span>${t}</span>`).join(separator);
+    } catch (err) {
+      console.error(err);
+      document.getElementById('marquee-text').textContent = 'Gagal memuat info.';
+    }
+  }
+
+  loadMarquee();
+  lucide.createIcons();
+</script>
 </body>
 </html>
