@@ -115,29 +115,17 @@
 
   <main class="pt-5 container mx-auto px-4 py-8">
     <!-- Iklan Atas -->
-      <!-- Iklan -->
-  <div class="affiliateAd"></div>
+    <div class="bg-yellow-300 text-center p-4 mb-6 rounded shadow">Iklan Banner Dummy (Atas)</div>
 
-    <div class="pt-[30px]"></div>
-    
     <!-- Popup Loading Spinner -->
 <div id="loading-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999] hidden transition-opacity duration-300">
   <div class="w-20 h-20 border-4 border-t-blue-500 border-b-pink-500 border-l-transparent border-r-transparent rounded-full animate-spin"></div>
 </div>
     <div id="drama-list" class="space-y-6"></div>
-<div class="pt-[30px]"></div>
-    <!-- Iklan Bawah -->
-    <!-- Iklan -->
-<div class="affiliateAd"></div>
-  </main>
 
-  <div id="notif-tooltip"
-     class="fixed bottom-20 right-4 bg-blue-600 text-white text-sm px-4 py-2 rounded shadow-lg max-w-sm w-fit mx-4 z-50">
-  <div class="flex items-start justify-between gap-2">
-    <span class="leading-snug">Aktifkan notifikasi untuk update drama terbaru kami!</span>
-    <button id="close-tooltip" class="text-white hover:text-gray-300 font-bold ml-2 mr-8">✕</button>
-  </div>
-</div>
+    <!-- Iklan Tengah -->
+    <div id="middle-ad" class="bg-blue-300 text-center p-4 mb-6 rounded shadow">Iklan Tengah Dummy</div>
+  </main>
   
 <!-- Floating Bottom Menu -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-md flex justify-around items-center py-2 z-50">
@@ -245,40 +233,325 @@
 </script>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const tooltip = document.getElementById("notif-tooltip");
-    const closeBtn = document.getElementById("close-tooltip");
+  const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X_HyDrdsBv4cnzL_JgSZYMGsgGSLYcev96X1g7X3R0LgnrhH7yTvdDfOc_0G8AFZG1S_Mp0zaJ5/pub?output=csv';
 
-    const lastClosed = localStorage.getItem("notifTooltipClosedAt");
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
+  async function getDramaData() {
+    const loadingPopup = document.getElementById('loading-popup');
+    const container = document.getElementById('drama-list');
+    loadingPopup.style.display = 'flex'; 
+    container.innerHTML = '';
 
-    if (!lastClosed || now - parseInt(lastClosed) > oneDay) {
-      tooltip.style.display = "flex"; // Tampilkan tooltip jika belum pernah tutup atau sudah lebih dari 1 hari
-    } else {
-      tooltip.style.display = "none";
+    try {
+      const res = await fetch(sheetURL);
+      const text = await res.text();
+      const rows = text.trim().split('\n');
+
+      const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+      const dataRows = rows.slice(1);
+
+      let dramas = [];
+
+      dataRows.forEach((row) => {
+        const cols = [];
+        let current = '';
+        let insideQuote = false;
+
+        for (let i = 0; i < row.length; i++) {
+          const char = row[i];
+          if (char === '"') {
+            insideQuote = !insideQuote;
+          } else if (char === ',' && !insideQuote) {
+            cols.push(current);
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        cols.push(current);
+
+        const drama = {};
+        headers.forEach((header, idx) => {
+          drama[header] = cols[idx] ? cols[idx].trim().replace(/^"|"$/g, '') : '';
+        });
+
+        if (drama.episode?.toLowerCase().includes('end')) {
+          return;
+        }
+
+        dramas.push(drama);
+      });
+
+      let count = 0;
+
+      dramas.forEach((drama) => {
+        const dramaHTML = `
+          <a href="/drama/${drama.slug}" class="flex bg-white rounded-lg shadow-md overflow-hidden hover:bg-gray-50 transition relative">
+            <img src="${drama.gambar}" alt="${drama.judul}" class="w-32 md:w-40 h-auto object-cover">
+            <div class="p-4 flex flex-col justify-between flex-1">
+              <div>
+                <h2 class="text-xl font-semibold">${drama.judul}</h2>
+                <p class="text-sm text-gray-600 mb-1">Genre: ${drama.genre}</p>
+                <p class="text-sm text-gray-600 mb-1">Episode: ${drama.episode}</p>
+                ${drama.jadwal ? `<p class="text-sm text-gray-600 mb-1">Jadwal: ${drama.jadwal}</p>` : ''}
+              </div>
+            </div>
+          </a>
+        `;
+
+        container.innerHTML += dramaHTML;
+        count++;
+
+        if (count === 4) {
+          container.innerHTML += `
+            <div class="affiliateAd"></div>
+          `;
+        }
+      });
+
+    } catch (error) {
+      container.innerHTML = `<div class="text-center text-red-500">Gagal memuat data drama. Coba lagi nanti.</div>`;
+    } finally {
+      loadingPopup.style.display = 'none'; 
     }
+  }
 
-    closeBtn.addEventListener("click", () => {
-      tooltip.style.display = "none";
-      localStorage.setItem("notifTooltipClosedAt", Date.now().toString());
-    });
-  });
+  getDramaData();
+  lucide.createIcons();
 </script>
 
-   <!-- Histats.com  START  (aync)-->
-   <script type="text/javascript">var _Hasync= _Hasync|| [];
-    _Hasync.push(['Histats.start', '1,4947528,4,0,0,0,00010000']);
-    _Hasync.push(['Histats.fasi', '1']);
-    _Hasync.push(['Histats.track_hits', '']);
-    (function() {
-    var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
-    hs.src = ('//s10.histats.com/js15_as.js');
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
-    })();</script>
-    <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?4947528&101" alt="" border="0"></a></noscript>
-    <!-- Histats.com  END  -->
 
-<script src="/index.js"></script>
+<script>
+  const marqueeSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X_HyDrdsBv4cnzL_JgSZYMGsgGSLYcev96X1g7X3R0LgnrhH7yTvdDfOc_0G8AFZG1S_Mp0zaJ5/pub?output=csv';
+  const infoDonasiSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=0&single=true&output=csv';
+  const infoSendiriSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=1921525187&single=true&output=csv';
+
+  function pecahHari(jadwal) {
+    const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    let hasil = [];
+    const bagian = jadwal.split(',');
+    bagian.forEach(segment => {
+      segment = segment.trim();
+      if (segment.includes('-')) {
+        const [start, end] = segment.split('-').map(s => s.trim());
+        const idxAwal = hariList.indexOf(start);
+        const idxAkhir = hariList.indexOf(end);
+        if (idxAwal !== -1 && idxAkhir !== -1 && idxAwal <= idxAkhir) {
+          hasil.push(...hariList.slice(idxAwal, idxAkhir + 1));
+        }
+      } else if (hariList.includes(segment)) {
+        hasil.push(segment);
+      }
+    });
+    return hasil;
+  }
+
+  function acakSatu(array) {
+    const filtered = array.filter(Boolean);
+    return filtered[Math.floor(Math.random() * filtered.length)];
+  }
+
+  function simpanEpisode(judul, episode) {
+    const key = `eps_${judul}`;
+    const data = {
+      episode: episode,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function ambilEpisodeSebelumnya(judul) {
+    const key = `eps_${judul}`;
+    const stored = localStorage.getItem(key);
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  }
+
+  function ambilNomorEpisode(str) {
+    const cocok = str?.match(/\d+/);
+    return cocok ? parseInt(cocok[0]) : null;
+  }
+
+  async function loadMarquee() {
+    try {
+      const [res1, res2, res3] = await Promise.all([
+        fetch(marqueeSheet),
+        fetch(infoDonasiSheet),
+        fetch(infoSendiriSheet)
+      ]);
+
+      const [csv1, csv2, csv3] = await Promise.all([
+        res1.text(),
+        res2.text(),
+        res3.text()
+      ]);
+
+      const dataDrama = Papa.parse(csv1, { header: true }).data;
+      const semuaDonasi = Papa.parse(csv2, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+      const semuaSendiri = Papa.parse(csv3, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+
+      const donasiRandom = acakSatu(semuaDonasi);
+      const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+
+      const sekarang = new Date();
+      const infoDramaHariIni = [];
+
+      dataDrama.forEach(row => {
+        const judul = row.Judul?.trim();
+        const epsSekarang = row.Episode?.trim();
+        const jadwal = row.Jadwal?.trim();
+
+        if (!judul || !epsSekarang || !jadwal) return;
+
+        const hariTayang = pecahHari(jadwal);
+        if (!hariTayang.includes(hariIni)) return;
+
+        const nomorSekarang = ambilNomorEpisode(epsSekarang);
+        if (!nomorSekarang) return;
+
+        const dataLokal = ambilEpisodeSebelumnya(judul);
+        const nomorSebelumnya = ambilNomorEpisode(dataLokal?.episode);
+        const waktuSimpan = dataLokal?.timestamp ? new Date(dataLokal.timestamp) : null;
+        const bedaHari = waktuSimpan && (waktuSimpan.toDateString() !== sekarang.toDateString());
+
+        if (nomorSebelumnya && nomorSekarang > nomorSebelumnya) {
+          // Episode bertambah: tampilkan info episode terbaru
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else if (nomorSekarang === nomorSebelumnya && waktuSimpan && !bedaHari) {
+          // Episode sudah ditandai sebagai terbaru hari ini
+          infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+        } else {
+          // Belum ada update, tampilkan info akan tayang
+          simpanEpisode(judul, epsSekarang);
+          infoDramaHariIni.push(`${judul} Episode ${nomorSekarang + 1} Akan Tayang Hari Ini, Jangan Lupa Nonton Yaa.`);
+        }
+      });
+
+      const semuaInfo = [];
+      const maxLen = Math.max(infoDramaHariIni.length, semuaSendiri.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (infoDramaHariIni[i]) semuaInfo.push(infoDramaHariIni[i]);
+        if (i === 0 && donasiRandom) semuaInfo.push(donasiRandom);
+        if (semuaSendiri[i]) semuaInfo.push(semuaSendiri[i]);
+      }
+
+      const separator = '<span class="mx-3 text-blue-300 font-bold">|</span>';
+      document.getElementById('marquee-text').innerHTML = semuaInfo.map(t => `<span>${t}</span>`).join(separator);
+    } catch (err) {
+      console.error(err);
+      document.getElementById('marquee-text').textContent = 'Gagal memuat info.';
+    }
+  }
+
+  loadMarquee();
+  lucide.createIcons();
+</script>
+
+
+<script>
+  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRKABHIQDUTSsVMo3QO0Banf6t0S8ruFmBlfJ8E6NXf1KnQhIr01zRgTA90qsWCOVRTV4rQjqT-vj0i/pub?output=csv";
+const STORAGE_KEY = "displayedAds_v1";
+
+// Ambil daftar iklan yang pernah ditampilkan dari localStorage
+function getDisplayedAds() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// Simpan daftar iklan yang telah ditampilkan
+function saveDisplayedAd(title) {
+  const displayed = getDisplayedAds();
+  displayed.push(title);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(displayed));
+}
+
+// Reset ketika semua iklan sudah ditampilkan
+function resetDisplayedAds() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+// Acak array
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// Buat elemen iklan
+function createAdElement(ad, container) {
+  const images = ad.gambar.split(',').map(img => img.trim());
+  let imgIndex = 0;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = "relative w-full max-w-[728px] bg-white rounded-xl shadow overflow-hidden flex flex-col sm:flex-row items-center sm:h-[90px]";
+
+  wrapper.innerHTML = `
+    <div class="absolute inset-0 sm:hidden bg-cover bg-center blur-md opacity-40 z-0 transition-all duration-500" style="background-image: url('${images[0]}');"></div>
+    <div class="relative w-full sm:w-[90px] h-[150px] sm:h-full flex-shrink-0 z-10 flex items-center justify-center">
+      <img src="${images[0]}" class="w-full h-full object-contain sm:object-cover transition-all duration-500 z-10 ad-image" />
+    </div>
+    <div class="relative flex-1 px-4 py-2 sm:py-0 flex flex-col justify-center text-center sm:text-left z-10">
+      <a href="${ad.link}" target="_blank"
+         class="text-base font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 mb-1">
+         ${ad.judul}
+      </a>
+      <a href="${ad.link}" target="_blank"
+         class="inline-flex items-center gap-2 w-max mx-auto sm:mx-0 border border-orange-500 text-orange-600 bg-white hover:bg-orange-50 text-sm font-semibold px-4 py-2 rounded-md transition">
+         <img src="https://img.icons8.com/color/48/shopee.png" class="w-6 h-6" />
+         BELI DI SINI
+      </a>
+    </div>
+  `;
+
+  container.innerHTML = "";
+  container.appendChild(wrapper);
+
+  // Autoplay gambar
+  const adImage = wrapper.querySelector(".ad-image");
+  const bgBlur = wrapper.querySelector(".absolute");
+  setInterval(() => {
+    imgIndex = (imgIndex + 1) % images.length;
+    adImage.src = images[imgIndex];
+    bgBlur.style.backgroundImage = `url('${images[imgIndex]}')`;
+  }, 3000);
+}
+
+Papa.parse(csvUrl, {
+  download: true,
+  header: true,
+  complete: function(results) {
+    let adQueue = results.data.filter(row => row.judul && row.gambar && row.link);
+    if (adQueue.length === 0) return;
+
+    const displayed = getDisplayedAds();
+    const remainingAds = adQueue.filter(ad => !displayed.includes(ad.judul));
+
+    if (remainingAds.length === 0) {
+      resetDisplayedAds();
+      shuffle(adQueue);
+    } else {
+      adQueue = remainingAds;
+    }
+
+    shuffle(adQueue);
+    const containers = document.querySelectorAll('.affiliateAd');
+    containers.forEach((container, i) => {
+      const ad = adQueue[i % adQueue.length];
+      createAdElement(ad, container);
+      saveDisplayedAd(ad.judul);
+    });
+  }
+});
+</script>
+  
+
 </body>
 </html>
