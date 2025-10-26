@@ -7,20 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .bg-blur {
-      background-size: cover;
-      background-position: center;
-      filter: blur(20px);
-      opacity: 0.4;
-    }
-  </style>
 </head>
 <body class="bg-gray-100 font-sans pb-20">
 
@@ -115,7 +101,7 @@
     </div>
 
     <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+  <div class="affiliateAd"></div>
 
 <!-- Tombol download (hanya muncul jika ada link) -->
     <!-- Tombol download (lebih menarik) -->
@@ -298,7 +284,7 @@
     </div>
 
     <!-- Iklan -->
-  <div class="affiliateAd my-4"></div>
+  <div class="affiliateAd"></div>
 
 
     <div id="badword-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
@@ -455,6 +441,510 @@ function closeBadwordModal() {
   });
 </script>
 
-<script src="/complete-detail.js"></script>
+<script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEcME2Vlq8bv3iQiy_VAvFWuI_Lic_rp4pnT46r4yNv7Q8VCYtjE0Y5PiTsp__9ze6_kpkbJNNHXWg/pub?output=csv';
+  
+    function getSlugFromUrl() {
+      return window.location.pathname.split('/').pop().trim();
+    }
+  
+    const loadingPopup = document.getElementById('loading-popup');
+  
+    async function loadDrama() {
+      try {
+        loadingPopup.classList.remove('hidden');
+  
+        const slug = getSlugFromUrl();
+  
+        const res = await fetch(sheetURL);
+        const csv = await res.text();
+        const data = Papa.parse(csv, { header: false }).data;
+  
+        const drama = data.find(row => row[5]?.trim() === slug); // slug di kolom ke-6 (indeks 5)
+  
+        if (!drama) {
+          document.getElementById('judul').innerText = "Drama tidak ditemukan.";
+          return;
+        }
+  
+        const [judul, genre, episode, gambar, embedDefault, slugKey, jadwal, lastUpdate, sinopsis, linkDownload, ...episodeData] = drama;
+  
+        document.title = `${judul} - Oppadrakor`;
+        document.getElementById('judul').innerText = judul;
+        document.getElementById('genre').innerText = "Genre: " + genre;
+        document.getElementById('episode').innerText = "Episode: " + episode;
+  
+        if (document.getElementById('sinopsis')) {
+          document.getElementById('sinopsis').innerText = sinopsis || '';
+        }
+  
+        if (jadwal && document.getElementById('jadwal')) {
+          document.getElementById('jadwal').innerText = "Jadwal Tayang: " + jadwal;
+        }
+  
+        const downloadWrapper = document.getElementById('download-wrapper');
+        const downloadButton = document.getElementById('download-button');
+  
+        if (linkDownload && linkDownload.trim() !== "") {
+          downloadButton.href = `/drama/${slug}/download`;
+          downloadWrapper.classList.remove('hidden');
+        }
+  
+        document.getElementById('gambar').src = gambar;
+  
+        const player = document.getElementById('player');
+        const fallbackImg = document.getElementById('player-fallback');
+  
+        if (embedDefault && embedDefault.trim() !== "") {
+          player.src = embedDefault;
+          player.classList.remove('hidden');
+          fallbackImg.classList.add('hidden');
+        } else {
+          player.classList.add('hidden');
+          fallbackImg.src = '/img/banner_player.png';
+          fallbackImg.classList.remove('hidden');
+        }
+  
+        displayEpisodes(episodeData);
+  
+      } catch (error) {
+        console.error("Error loading drama:", error);
+        document.getElementById('judul').innerText = "Terjadi kesalahan.";
+      } finally {
+        loadingPopup.classList.add('hidden');
+      }
+    }
+  
+    function displayEpisodes(episodeData) {
+      const episodeList = document.getElementById('episode-list');
+      const serverButtons = document.getElementById('server-buttons');
+      episodeList.innerHTML = '';
+      episodeList.className = "grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 mt-4";
+  
+      let lastButton = null;
+  
+      for (let i = 0; i < episodeData.length; i += 2) {
+        const label = episodeData[i];
+        const urlString = episodeData[i + 1];
+  
+        if (!label || !urlString) continue;
+  
+        const button = document.createElement('button');
+        button.textContent = label.trim();
+        button.className = "bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm w-full";
+  
+        button.onclick = () => {
+          const urls = urlString.split(',').map(u => u.trim()).filter(u => u !== '');
+  
+          if (urls.length === 0) return;
+  
+          serverButtons.innerHTML = '';
+          serverButtons.classList.remove('hidden');
+  
+          urls.forEach((url, index) => {
+            const serverBtn = document.createElement('button');
+            serverBtn.textContent = `Server ${index + 1}`;
+            serverBtn.className = "bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-800 text-xs";
+  
+            serverBtn.onclick = () => {
+              const player = document.getElementById('player');
+              const fallbackImg = document.getElementById('player-fallback');
+  
+              player.src = url;
+              player.classList.remove('hidden');
+              fallbackImg.classList.add('hidden');
+  
+              serverButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('bg-green-600', 'hover:bg-green-700'));
+              serverBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            };
+  
+            serverButtons.appendChild(serverBtn);
+  
+            if (index === 0) {
+              serverBtn.click();
+            }
+          });
+  
+          window.scrollTo({ top: document.getElementById('player').offsetTop - 100, behavior: 'smooth' });
+  
+          const allButtons = episodeList.querySelectorAll('button');
+          allButtons.forEach(btn => btn.classList.remove('bg-green-600', 'hover:bg-green-700'));
+          button.classList.add('bg-green-600', 'hover:bg-green-700');
+        };
+  
+        episodeList.appendChild(button);
+        lastButton = { button };
+      }
+  
+      if (lastButton) lastButton.button.click();
+    }
+  
+    loadDrama();
+    lucide.createIcons();
+  </script>
+  
+    
+    <script>
+      const marqueeSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X_HyDrdsBv4cnzL_JgSZYMGsgGSLYcev96X1g7X3R0LgnrhH7yTvdDfOc_0G8AFZG1S_Mp0zaJ5/pub?output=csv';
+      const infoDonasiSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=0&single=true&output=csv';
+      const infoSendiriSheet = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmujaZtm-jmf6HLbDSG9fFCALrzPW6pPPYTNH7tKqCRp_0VR3ueTDo1nT0Ukv8zYf3mHOmMILJemNV/pub?gid=1921525187&single=true&output=csv';
+    
+      function pecahHari(jadwal) {
+        const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+        let hasil = [];
+        const bagian = jadwal.split(',');
+        bagian.forEach(segment => {
+          segment = segment.trim();
+          if (segment.includes('-')) {
+            const [start, end] = segment.split('-').map(s => s.trim());
+            const idxAwal = hariList.indexOf(start);
+            const idxAkhir = hariList.indexOf(end);
+            if (idxAwal !== -1 && idxAkhir !== -1 && idxAwal <= idxAkhir) {
+              hasil.push(...hariList.slice(idxAwal, idxAkhir + 1));
+            }
+          } else if (hariList.includes(segment)) {
+            hasil.push(segment);
+          }
+        });
+        return hasil;
+      }
+    
+      function acakSatu(array) {
+        const filtered = array.filter(Boolean);
+        return filtered[Math.floor(Math.random() * filtered.length)];
+      }
+    
+      function simpanEpisode(judul, episode) {
+        const key = `eps_${judul}`;
+        const data = {
+          episode: episode,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem(key, JSON.stringify(data));
+      }
+    
+      function ambilEpisodeSebelumnya(judul) {
+        const key = `eps_${judul}`;
+        const stored = localStorage.getItem(key);
+        if (!stored) return null;
+        try {
+          return JSON.parse(stored);
+        } catch {
+          return null;
+        }
+      }
+    
+      function ambilNomorEpisode(str) {
+        const cocok = str?.match(/\d+/);
+        return cocok ? parseInt(cocok[0]) : null;
+      }
+    
+      async function loadMarquee() {
+        try {
+          const [res1, res2, res3] = await Promise.all([
+            fetch(marqueeSheet),
+            fetch(infoDonasiSheet),
+            fetch(infoSendiriSheet)
+          ]);
+    
+          const [csv1, csv2, csv3] = await Promise.all([
+            res1.text(),
+            res2.text(),
+            res3.text()
+          ]);
+    
+          const dataDrama = Papa.parse(csv1, { header: true }).data;
+          const semuaDonasi = Papa.parse(csv2, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+          const semuaSendiri = Papa.parse(csv3, { header: false }).data.map(row => row[0]?.trim()).filter(Boolean);
+    
+          const donasiRandom = acakSatu(semuaDonasi);
+          const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
+    
+          const sekarang = new Date();
+          const infoDramaHariIni = [];
+    
+          dataDrama.forEach(row => {
+            const judul = row.Judul?.trim();
+            const epsSekarang = row.Episode?.trim();
+            const jadwal = row.Jadwal?.trim();
+    
+            if (!judul || !epsSekarang || !jadwal) return;
+    
+            const hariTayang = pecahHari(jadwal);
+            if (!hariTayang.includes(hariIni)) return;
+    
+            const nomorSekarang = ambilNomorEpisode(epsSekarang);
+            if (!nomorSekarang) return;
+    
+            const dataLokal = ambilEpisodeSebelumnya(judul);
+            const nomorSebelumnya = ambilNomorEpisode(dataLokal?.episode);
+            const waktuSimpan = dataLokal?.timestamp ? new Date(dataLokal.timestamp) : null;
+            const bedaHari = waktuSimpan && (waktuSimpan.toDateString() !== sekarang.toDateString());
+    
+            if (nomorSebelumnya && nomorSekarang > nomorSebelumnya) {
+              // Episode bertambah: tampilkan info episode terbaru
+              simpanEpisode(judul, epsSekarang);
+              infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+            } else if (nomorSekarang === nomorSebelumnya && waktuSimpan && !bedaHari) {
+              // Episode sudah ditandai sebagai terbaru hari ini
+              infoDramaHariIni.push(`Episode Terbaru ${judul} Episode ${epsSekarang} Telah Tersedia, Silakan di Tonton Yaa.`);
+            } else {
+              // Belum ada update, tampilkan info akan tayang
+              simpanEpisode(judul, epsSekarang);
+              infoDramaHariIni.push(`${judul} Episode ${nomorSekarang + 1} Akan Tayang Hari Ini, Jangan Lupa Nonton Yaa.`);
+            }
+          });
+    
+          const semuaInfo = [];
+          const maxLen = Math.max(infoDramaHariIni.length, semuaSendiri.length);
+          for (let i = 0; i < maxLen; i++) {
+            if (infoDramaHariIni[i]) semuaInfo.push(infoDramaHariIni[i]);
+            if (i === 0 && donasiRandom) semuaInfo.push(donasiRandom);
+            if (semuaSendiri[i]) semuaInfo.push(semuaSendiri[i]);
+          }
+    
+          const separator = '<span class="mx-3 text-blue-300 font-bold">|</span>';
+          document.getElementById('marquee-text').innerHTML = semuaInfo.map(t => `<span>${t}</span>`).join(separator);
+        } catch (err) {
+          console.error(err);
+          document.getElementById('marquee-text').textContent = 'Gagal memuat info.';
+        }
+      }
+    
+      loadMarquee();
+    </script> 
+    
+  
+  <script>
+  const komentarSheetURL = 'https://script.google.com/macros/s/AKfycbwOyfk2gPizysSFVRIwE5ABUiPozWkeYvkbGSKJtty2xoUPTvlHgnyQQsoYxzBmUY2vRg/exec';
+  const sheetID = '1QSy94MyY-ffzbEJKoEU5cOlq4mhhBf38S1XbcG6ZDfY';
+  const slug = window.location.pathname.split('/')[2];
+  const filterKata = [
+    'anjing', 'babi', 'kontol', 'memek', 'pepek', 'bangsat', 'goblok',
+    'tolol', 'asu', 'kampret', 'pantek', 'tai', 'ngentot', 'idiot',
+    'brengsek', 'sinting', 'setan', 'laknat', 'bodoh', 'sialan',
+    'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'dumb', 'stupid','admin'];
+  
+  let komentarSemua = [];
+  let currentPage = 1;
+  const perPage = 10;
+  
+  function bersihFilter(teks) {
+    const teksBersih = teks
+      .toLowerCase()
+      .replace(/[0o@*1234567890!]/g, 'o') // Ganti karakter mirip
+      .replace(/[^a-z]/g, '');   // Hilangkan simbol aneh
+  
+    return filterKata.some(kata => {
+      const regex = new RegExp(kata, 'i');
+      return regex.test(teksBersih);
+    });
+  }
+  
+  
+  function isiNamaDariLocal() {
+    const saved = localStorage.getItem('namaUser');
+    if (saved) document.getElementById('nama').value = saved;
+  }
+  
+  function sanitize(str) {
+    return str.replace(/[&<>"']/g, s => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]
+    ));
+  }
+  
+  function formatTanggalBaru(date) {
+    return date.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    }) + ', ' + date.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  }
+  
+  function tampilkanKomentar() {
+    const start = (currentPage - 1) * perPage;
+    const end = start + perPage;
+    const pageData = komentarSemua.slice().reverse().slice(start, end); // terbaru di atas
+    const list = document.getElementById('comments-list');
+    list.innerHTML = pageData.length
+      ? pageData.map(k => `
+        <div class="border-b pb-2 mb-2">
+          <div class="flex justify-between items-center">
+            <strong>${sanitize(k.nama)}</strong>
+            <span class="text-xs text-gray-500">${sanitize(k.waktu)}</span>
+          </div>
+          <p>${sanitize(k.komentar)}</p>
+        </div>
+      `).join('')
+      : '<p>Belum ada komentar.</p>';
+  
+    document.getElementById('pageInfo').textContent =
+      `${currentPage} dari ${Math.ceil(komentarSemua.length / perPage)}`;
+  
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = end >= komentarSemua.length;
+  }
+  
+  async function loadKomentar() {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv`;
+      const res = await fetch(url);
+      const csv = await res.text();
+      const rows = Papa.parse(csv, { header: true }).data;
+      komentarSemua = rows.filter(r => r.slug === slug);
+      currentPage = 1;
+      tampilkanKomentar();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
+  document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      tampilkanKomentar();
+    }
+  });
+  
+  document.getElementById('nextPage').addEventListener('click', () => {
+    if ((currentPage * perPage) < komentarSemua.length) {
+      currentPage++;
+      tampilkanKomentar();
+    }
+  });
+  
+  document.getElementById('comment-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nama = document.getElementById('nama').value.trim();
+    const komentar = document.getElementById('komentar').value.trim();
+    const waktu = formatTanggalBaru(new Date());
+  
+    if (!nama || !komentar) return alert('Isi semua field.');
+    if (bersihFilter(nama) || bersihFilter(komentar)) {
+    showBadwordModal();
+    return;
+    }
+  
+    localStorage.setItem('namaUser', nama);
+  
+    const data = new URLSearchParams({ slug, nama, komentar, waktu });
+  
+    await fetch(komentarSheetURL, {
+      method: 'POST',
+      body: data
+    });
+  
+    // Tambahkan komentar ke awal array
+    komentarSemua.push({ slug, nama, komentar, waktu });
+    currentPage = 1;
+    tampilkanKomentar();
+  
+    document.getElementById('komentar').value = '';
+  });
+  
+  isiNamaDariLocal();
+  loadKomentar();
+  </script>
+  
+  <!-- Script Iklan -->
+  <script>
+    const SHEET_ID = '10sXvsFfg4dt71xg0DID-V_A_sD-NjkzoYnj-0nenx2c';
+    const SHEET_NAME = 'linkIklan';
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+  
+    const videoAd = document.getElementById("video-ad");
+    const videoSource = document.getElementById("video-source");
+    const skipButton = document.getElementById("skip-button");
+    const adInfo = document.getElementById("ad-info");
+    const countdownText = document.getElementById("countdown-text");
+    const volumeToggle = document.getElementById("volume-toggle");
+    const adActionBtn = document.getElementById("ad-action-btn");
+    const videoContainer = document.getElementById("video-ad-container");
+    const iframeContainer = document.getElementById("iframe-container");
+  
+    let countdown = 30;
+    let countdownInterval;
+  
+    const shownAdsKey = "shownAds";
+  
+    function displayAd(ad, index) {
+      videoSource.src = ad.video_url;
+  
+      if (ad.link_aksi) {
+        adActionBtn.href = ad.link_aksi;
+        adActionBtn.textContent = ad.teks_aksi || "Kunjungi Sponsor";
+        adActionBtn.classList.remove("hidden");
+      }
+  
+      videoAd.load();
+  
+      // Simpan index iklan ke localStorage (hanya untuk tracking, tidak digunakan untuk filter)
+      let shownAds = JSON.parse(localStorage.getItem(shownAdsKey) || "[]");
+      shownAds.push(index);
+      localStorage.setItem(shownAdsKey, JSON.stringify(shownAds));
+    }
+  
+    function fetchAd() {
+      Papa.parse(SHEET_URL, {
+        download: true,
+        header: true,
+        complete: function(results) {
+          const data = results.data.filter(row => row.video_url);
+          if (data.length === 0) return;
+  
+          const randomIndex = Math.floor(Math.random() * data.length);
+          const selectedAd = data[randomIndex];
+  
+          displayAd(selectedAd, randomIndex);
+        }
+      });
+    }
+  
+    function initAd() {
+      fetchAd(); // Selalu tampilkan iklan
+    }
+  
+    initAd();
+  
+    videoAd.addEventListener("play", () => {
+      adInfo.classList.remove("hidden");
+  
+      countdown = 30;
+      countdownText.textContent = `Tunggu ${countdown} detik untuk lanjut menonton`;
+  
+      countdownInterval = setInterval(() => {
+        countdown--;
+        countdownText.textContent = `Tunggu ${countdown} detik untuk lanjut menonton`;
+  
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          skipButton.classList.remove("hidden");
+          adInfo.classList.add("hidden");
+  
+          adActionBtn.classList.remove("bottom-16");
+          adActionBtn.classList.add("bottom-4");
+        }
+      }, 1000);
+    });
+  
+    skipButton.addEventListener("click", () => {
+      videoAd.pause();
+      videoContainer.classList.add("hidden");
+      iframeContainer.classList.remove("hidden");
+    });
+  
+    videoAd.addEventListener("ended", () => {
+      skipButton.click();
+    });
+  
+    volumeToggle.addEventListener("click", () => {
+      videoAd.muted = !videoAd.muted;
+      volumeToggle.textContent = videoAd.muted ? "🔇" : "🔊";
+    });
+  </script>
 </body>
 </html>
