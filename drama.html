@@ -908,7 +908,7 @@ loadKomentar();
   videoAd.addEventListener("play", () => {
     adInfo.classList.remove("hidden");
 
-    countdown = 30;
+    countdown = 20;
     countdownText.textContent = `Tunggu ${countdown} detik untuk lanjut menonton`;
 
     countdownInterval = setInterval(() => {
@@ -942,5 +942,38 @@ loadKomentar();
   });
 </script>
 
+<script>
+  // ===== 1 KLIK REDIRECT + AUTO EMBED SAAT BALIK =====
+  const redirectKey = "ad_redirect_done_once";
+  const redirectURL = "https://LINK-IKLAN-REDIRECT-KAMU"; // GANTI
+
+  // Jika user SUDAH redirect dan BALIK ke halaman
+  if (localStorage.getItem(redirectKey)) {
+    // Langsung tampilkan embed
+    videoContainer.classList.add("hidden");
+    iframeContainer.classList.remove("hidden");
+  }
+
+  // Override klik tombol skip
+  skipButton.addEventListener("click", function () {
+    // Jika BELUM redirect
+    if (!localStorage.getItem(redirectKey)) {
+      localStorage.setItem(redirectKey, "yes");
+
+      // Pause iklan
+      videoAd.pause();
+
+      // Redirect iklan
+      window.location.href = redirectURL;
+      return;
+    }
+
+    // Jika sudah redirect (fallback safety)
+    videoContainer.classList.add("hidden");
+    iframeContainer.classList.remove("hidden");
+  });
+</script>
+
 </body>
 </html>
+
